@@ -97,17 +97,17 @@
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-core</artifactId>
-            <version>1.0.0</version>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-dbms</artifactId>
-            <version>1.0.0</version>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-persistence</artifactId>
-            <version>1.0.0</version>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>net.sf.jopt-simple</groupId>
