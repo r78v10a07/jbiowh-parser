@@ -45,6 +45,7 @@ public class DataSetLoader extends AbstractDefaultTool {
         JBioWHDBMS.getInstance().setWhdbmsFactory(
                 new WHMySQL(factory.getDriver(), factory.getUrl(), factory.getUser(), factory.getPasswd(), true));
         VerbLogger.getInstance().log(this.getClass(), "Parsing a " + DataSetPersistence.getInstance().getType() + " data source");
+        JBioWHDBMS.getInstance().setMainURL(factory.getUrl());
         ParseFactory parser = null;
         switch (DataSetPersistence.getInstance().getType()) {
             case "Taxonomy":
