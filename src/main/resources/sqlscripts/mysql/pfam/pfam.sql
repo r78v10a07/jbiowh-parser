@@ -118,7 +118,7 @@ INSERT INTO PfamARegFullInsignificant (PfamA_WID,Protein_WID,auto_pfamseq,seq_st
 domain_bits_score,domain_evalue_score,sequence_bits_score,sequence_evalue_score)
 SELECT p.WID,q.Protein_WID,s.auto_pfamseq,s.seq_start,s.seq_end,s.model_start,s.model_end,
 s.domain_bits_score,s.domain_evalue_score,s.sequence_bits_score,s.sequence_evalue_score
-FROM pfamA_reg_full_insignificant s INNER JOIN pfamA a ON a.auto_pfamA = s.auto_pfamA 
+ FROM pfamA_reg_full_insignificant s INNER JOIN pfamA a ON a.auto_pfamA = s.auto_pfamA 
  INNER JOIN PfamAbioWH p ON p.pfamA_acc = a.pfamA_acc
  INNER JOIN PfamSeq_has_Protein q on q.auto_pfamseq = s.auto_pfamseq;
 SELECT (@WID:=MAX(a.WID) + 1) FROM PfamARegFullInsignificant a;

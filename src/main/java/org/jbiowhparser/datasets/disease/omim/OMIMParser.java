@@ -7,6 +7,7 @@ import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
 import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhparser.ParseFactory;
+import org.jbiowhparser.ParserBasic;
 import org.jbiowhparser.datasets.disease.omim.files.GeneMapParser;
 import org.jbiowhparser.datasets.disease.omim.files.MorbidMapParser;
 import org.jbiowhparser.datasets.disease.omim.files.OMIMTXTParser;
@@ -18,12 +19,12 @@ import org.jbiowhpersistence.datasets.disease.omim.OMIMTables;
 /**
  * This Class is the OMIM parser
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2013-03-19 09:38:47 +0100 (Tue, 19 Mar 2013) $
- * $LastChangedRevision: 396 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100
+ * (Tue, 19 Mar 2013) $ $LastChangedRevision: 396 $
+ *
  * @since Jul 12, 2012
  */
-public class OMIMParser implements ParseFactory {
+public class OMIMParser extends ParserBasic implements ParseFactory {
 
     @Override
     public void runLoader() throws SQLException {
@@ -60,5 +61,10 @@ public class OMIMParser implements ParseFactory {
         DataSetPersistence.getInstance().updateDataSet();
         WIDFactory.getInstance().updateWIDTable();
         ParseFiles.getInstance().end();
+    }
+
+    @Override
+    public void runCleaner() throws SQLException {
+        clean(OMIMTables.getInstance().getTables());
     }
 }

@@ -7,6 +7,7 @@ import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
 import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhparser.ParseFactory;
+import org.jbiowhparser.ParserBasic;
 import org.jbiowhparser.datasets.domain.pfam.files.PFamSQLfiles;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
@@ -15,11 +16,12 @@ import org.jbiowhpersistence.datasets.domain.pfam.PFamTables;
 /**
  * This class is the Pfam Parser
  *
- * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100 (Tue, 19 Mar 2013) $ $LastChangedRevision: 396 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100
+ * (Tue, 19 Mar 2013) $ $LastChangedRevision: 396 $
  *
  * @since Oct 24, 2012
  */
-public class PFamParser implements ParseFactory {
+public class PFamParser extends ParserBasic implements ParseFactory {
 
     @Override
     public void runLoader() throws SQLException {
@@ -56,5 +58,10 @@ public class PFamParser implements ParseFactory {
                 whdbmsFactory.executeUpdate("TRUNCATE TABLE " + table);
             }
         }
+    }
+
+    @Override
+    public void runCleaner() throws SQLException {
+        clean(PFamTables.getInstance().getTables());
     }
 }

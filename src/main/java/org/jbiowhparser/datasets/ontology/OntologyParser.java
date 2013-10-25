@@ -16,6 +16,7 @@ import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
 import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhparser.ParseFactory;
+import org.jbiowhparser.ParserBasic;
 import org.jbiowhparser.datasets.ontology.links.OntologyLinks;
 import org.jbiowhparser.datasets.ontology.xml.GO;
 import org.jbiowhparser.datasets.ontology.xml.GOOntologyDefaultHandler;
@@ -27,15 +28,16 @@ import org.xml.sax.SAXException;
 /**
  * This Class is the Ontology parser
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2013-03-19 09:38:47 +0100 (Tue, 19 Mar 2013) $
- * $LastChangedRevision: 396 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100
+ * (Tue, 19 Mar 2013) $ $LastChangedRevision: 396 $
+ *
  * @since Jun 27, 2011
  */
-public class OntologyParser implements ParseFactory {
+public class OntologyParser extends ParserBasic implements ParseFactory {
 
     /**
      * Run the Taxonomy Parser
+     *
      * @throws java.sql.SQLException
      */
     @Override
@@ -210,5 +212,10 @@ public class OntologyParser implements ParseFactory {
                 whdbmsFactory.executeUpdate("TRUNCATE TABLE " + table);
             }
         }
+    }
+
+    @Override
+    public void runCleaner() throws SQLException {
+        clean(OntologyTables.getInstance().getTables());
     }
 }
