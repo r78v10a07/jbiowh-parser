@@ -15,6 +15,7 @@ import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
 import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhparser.ParseFactory;
+import org.jbiowhparser.ParserBasic;
 import org.jbiowhparser.datasets.pathway.kegg.kgml.PathwayPrintOnTSVFile;
 import org.jbiowhparser.datasets.pathway.kegg.kgml.xml.Pathway;
 import org.jbiowhparser.datasets.pathway.kegg.links.KEGGLinks;
@@ -29,9 +30,10 @@ import org.jbiowhpersistence.datasets.pathway.kegg.KEGGTables;
  *
  * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100
  * (Tue, 19 Mar 2013) $ $LastChangedRevision: 591 $
+ *
  * @since Oct 30, 2011
  */
-public class KEGGParser implements ParseFactory {
+public class KEGGParser extends ParserBasic implements ParseFactory {
 
     @Override
     public void runLoader() throws SQLException {
@@ -358,5 +360,10 @@ public class KEGGParser implements ParseFactory {
                 + " p on p.Entry = g.Entry group by g.WID,p.KEGGPathway_WID");
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + KEGGTables.getInstance().KEGGPATHWAYENTRYCOMPOUND);
+    }
+
+    @Override
+    public void runCleaner() throws SQLException {
+        clean(KEGGTables.getInstance().getTables());
     }
 }

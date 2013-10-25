@@ -16,6 +16,7 @@ import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
 import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhparser.ParseFactory;
+import org.jbiowhparser.ParserBasic;
 import org.jbiowhparser.datasets.protein.links.ProteinLinks;
 import org.jbiowhparser.datasets.protein.xml.Uniprot;
 import org.jbiowhparser.datasets.protein.xml.UniprotDefaultHandler;
@@ -27,15 +28,16 @@ import org.xml.sax.SAXException;
 /**
  * This Class is the Protein Parser
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2013-03-19 09:38:47 +0100 (Tue, 19 Mar 2013) $
- * $LastChangedRevision: 396 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100
+ * (Tue, 19 Mar 2013) $ $LastChangedRevision: 396 $
+ *
  * @since Aug 5, 2011
  */
-public class ProteinParser implements ParseFactory {
+public class ProteinParser extends ParserBasic implements ParseFactory {
 
     /**
      * Run the Protein Parser
+     *
      * @throws java.sql.SQLException
      */
     @Override
@@ -119,19 +121,19 @@ public class ProteinParser implements ParseFactory {
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.getInstance().PROTEINWIDKEYWORDTEMP);
 
         for (String table : new String[]{
-                    ProteinTables.getInstance().PROTEINPDB,
-                    ProteinTables.getInstance().PROTEINPMID,
-                    ProteinTables.getInstance().PROTEINKEGG,
-                    ProteinTables.getInstance().PROTEINREFSEQ,
-                    ProteinTables.getInstance().PROTEINMINT,
-                    ProteinTables.getInstance().PROTEINGENE,
-                    ProteinTables.getInstance().PROTEINDIP,
-                    ProteinTables.getInstance().PROTEINGO,
-                    ProteinTables.getInstance().PROTEINPFAM,
-                    ProteinTables.getInstance().PROTEININTACT,
-                    ProteinTables.getInstance().PROTEINEC,
-                    ProteinTables.getInstance().PROTEINBIOCYC,
-                    ProteinTables.getInstance().PROTEINDRUGBANK}) {
+            ProteinTables.getInstance().PROTEINPDB,
+            ProteinTables.getInstance().PROTEINPMID,
+            ProteinTables.getInstance().PROTEINKEGG,
+            ProteinTables.getInstance().PROTEINREFSEQ,
+            ProteinTables.getInstance().PROTEINMINT,
+            ProteinTables.getInstance().PROTEINGENE,
+            ProteinTables.getInstance().PROTEINDIP,
+            ProteinTables.getInstance().PROTEINGO,
+            ProteinTables.getInstance().PROTEINPFAM,
+            ProteinTables.getInstance().PROTEININTACT,
+            ProteinTables.getInstance().PROTEINEC,
+            ProteinTables.getInstance().PROTEINBIOCYC,
+            ProteinTables.getInstance().PROTEINDRUGBANK}) {
             whdbmsFactory.executeUpdate("insert into "
                     + table
                     + " (Protein_WID, Id) "
@@ -161,5 +163,10 @@ public class ProteinParser implements ParseFactory {
                 whdbmsFactory.executeUpdate("TRUNCATE TABLE " + table);
             }
         }
+    }
+
+    @Override
+    public void runCleaner() throws SQLException {
+        clean(ProteinTables.getInstance().getTables());
     }
 }

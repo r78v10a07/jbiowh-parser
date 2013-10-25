@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhparser.ParseFactory;
+import org.jbiowhparser.ParserBasic;
 import org.jbiowhparser.datasets.gene.gene.files.Gene2AccessionParser;
 import org.jbiowhparser.datasets.gene.gene.files.Gene2EnsemblParser;
 import org.jbiowhparser.datasets.gene.gene.files.Gene2GOParser;
@@ -23,15 +24,16 @@ import org.jbiowhpersistence.datasets.gene.gene.GeneTables;
 /**
  * This Class is the Gene Parser
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2013-05-29 11:24:54 +0200 (Wed, 29 May 2013) $
- * $LastChangedRevision: 591 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-05-29 11:24:54 +0200
+ * (Wed, 29 May 2013) $ $LastChangedRevision: 591 $
+ *
  * @since Jul 5, 2011
  */
-public class GeneParser implements ParseFactory {
+public class GeneParser extends ParserBasic implements ParseFactory {
 
     /**
      * Run the Taxonomy Parser
+     *
      * @throws java.sql.SQLException
      */
     @Override
@@ -74,5 +76,10 @@ public class GeneParser implements ParseFactory {
         DataSetPersistence.getInstance().updateDataSet();
         WIDFactory.getInstance().updateWIDTable();
         ParseFiles.getInstance().end();
+    }
+
+    @Override
+    public void runCleaner() throws SQLException {
+        clean(GeneTables.getInstance().getTables());
     }
 }

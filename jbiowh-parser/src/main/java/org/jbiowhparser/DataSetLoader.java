@@ -38,6 +38,7 @@ import org.xml.sax.SAXException;
 public class DataSetLoader extends AbstractDefaultTool {
 
     private String configXMLFile;
+    private boolean clean;
 
     public void dataSetLoader() throws SQLException, ParserConfigurationException, SAXException, IOException {
         DataSetPersistence.getInstance().readDatasetFromFile(configXMLFile);
@@ -116,7 +117,11 @@ public class DataSetLoader extends AbstractDefaultTool {
         }
 
         if (parser != null) {
-            parser.runLoader();
+            if (clean) {
+                parser.runCleaner();
+            } else {
+                parser.runLoader();
+            }
         }
     }
 
@@ -144,16 +149,20 @@ public class DataSetLoader extends AbstractDefaultTool {
 
     @Override
     protected void parseOptions(String[] args) throws FileNotFoundException {
-        OptionParser parser = new OptionParser("i:");
+        OptionParser parser = new OptionParser("i:c");
         parser.accepts("i").withRequiredArg().ofType(String.class);
+        parser.accepts("c");
         OptionSet options = parser.parse(args);
         configXMLFile = (String) parseOption(options, "i", null, true, true);
+
+        clean = (Boolean) parseOption(options, "c", false, false, false);
     }
 
     @Override
     protected void printHelp() {
         System.out.println("Arguments:");
         System.out.println("\t-i XML config file");
+        System.out.println("\t-c Clean the relational schema");
         System.exit(0);
     }
 }

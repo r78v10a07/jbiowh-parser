@@ -11,6 +11,7 @@ import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
 import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhparser.ParseFactory;
+import org.jbiowhparser.ParserBasic;
 import org.jbiowhparser.datasets.gene.genome.links.GenePTTLinks;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
@@ -22,9 +23,10 @@ import org.jbiowhpersistence.datasets.gene.genome.GenePTTTables;
  *
  * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-02-07 09:07:45 +0100
  * (Thu, 07 Feb 2013) $ $LastChangedRevision: 656 $
+ *
  * @since Aug 5, 2011
  */
-public class GenePTTParser implements ParseFactory {
+public class GenePTTParser extends ParserBasic implements ParseFactory {
 
     /**
      * This method load the data in gene_info file to its relational tables
@@ -52,7 +54,7 @@ public class GenePTTParser implements ParseFactory {
         }
 
         if (dir.isDirectory()) {
-            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[] {".ptt", ".rnt"});
+            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{".ptt", ".rnt"});
             int i = 0;
 
             whdbmsFactory.executeUpdate("ALTER TABLE " + GenePTTTables.GENERNT + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
@@ -97,7 +99,7 @@ public class GenePTTParser implements ParseFactory {
             WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
                     + GenePTTTables.GENERNT, "WID"));
         }
-        
+
         if (DataSetPersistence.getInstance().isRunlinks()) {
             GenePTTLinks.getInstance().runLink();
         }
@@ -117,5 +119,10 @@ public class GenePTTParser implements ParseFactory {
         DataSetPersistence.getInstance().updateDataSet();
         WIDFactory.getInstance().updateWIDTable();
         ParseFiles.getInstance().end();
+    }
+
+    @Override
+    public void runCleaner() throws SQLException {
+        clean(GenePTTTables.getInstance().getTables());
     }
 }

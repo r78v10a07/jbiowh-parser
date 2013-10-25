@@ -16,6 +16,7 @@ import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
 import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhparser.ParseFactory;
+import org.jbiowhparser.ParserBasic;
 import org.jbiowhparser.datasets.protclust.links.UniRefLinks;
 import org.jbiowhparser.datasets.protclust.xml.UniRef;
 import org.jbiowhparser.datasets.protclust.xml.UniRefDefaultHandler;
@@ -27,15 +28,16 @@ import org.xml.sax.SAXException;
 /**
  * This Class is the UniRef parser
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2013-03-19 09:38:47 +0100 (Tue, 19 Mar 2013) $
- * $LastChangedRevision: 396 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100
+ * (Tue, 19 Mar 2013) $ $LastChangedRevision: 396 $
+ *
  * @since Aug 19, 2011
  */
-public class UniRefParser implements ParseFactory {
+public class UniRefParser extends ParserBasic implements ParseFactory {
 
     /**
      * Run the UniRef Parser
+     *
      * @throws java.sql.SQLException
      */
     @Override
@@ -102,5 +104,10 @@ public class UniRefParser implements ParseFactory {
         DataSetPersistence.getInstance().updateDataSet();
         WIDFactory.getInstance().updateWIDTable();
         ParseFiles.getInstance().end();
+    }
+
+    @Override
+    public void runCleaner() throws SQLException {
+        clean(UniRefTables.getInstance().getTables());
     }
 }

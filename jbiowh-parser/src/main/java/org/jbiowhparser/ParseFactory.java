@@ -17,4 +17,10 @@ public interface ParseFactory {
      * @throws SQLException 
      */
     public void runLoader() throws SQLException;
+    
+    /**
+     * Clean the relational schema
+     * @throws SQLException 
+     */
+    public void runCleaner() throws SQLException;
 }
