@@ -8,6 +8,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.jbiowhcore.basic.JBioWHUserData;
 import org.jbiowhcore.logger.VerbLogger;
+import org.jbiowhcore.utility.AbstractDefaultTool;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
 import org.jbiowhdbms.dbms.mysql.WHMySQL;
 import org.jbiowhparser.datasets.disease.omim.OMIMParser;
@@ -164,5 +165,18 @@ public class DataSetLoader extends AbstractDefaultTool {
         System.out.println("\t-i XML config file");
         System.out.println("\t-c Clean the relational schema");
         System.exit(0);
+    }
+
+    @Override
+    protected void openConnection(boolean isMain, boolean createSchema, boolean startThread) throws SQLException {
+    }
+
+    @Override
+    protected void closeConnection() throws SQLException {
+        if (file != null) {
+            file.close();
+        }
+        JBioWHPersistence.getInstance().closeAll();
+        JBioWHDBMS.getInstance().closeAll();
     }
 }
