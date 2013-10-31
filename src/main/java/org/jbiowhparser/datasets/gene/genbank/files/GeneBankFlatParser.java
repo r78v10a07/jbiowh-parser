@@ -81,7 +81,7 @@ public class GeneBankFlatParser {
 
         long startTime = System.currentTimeMillis();
         if (dir.isDirectory()) {
-            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{".gbk"});
+            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{".gbk", ".gbk.gz",".seq", ".seq.gz" });
             int i = 0;
             for (File file : files) {
                 whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneBankTables.getInstance().GENEBANKCDSTEMP);
