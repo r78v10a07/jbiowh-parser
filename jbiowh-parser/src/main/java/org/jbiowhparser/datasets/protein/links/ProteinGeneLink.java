@@ -58,11 +58,11 @@ public class ProteinGeneLink {
                 + " (select p.Protein_WID,g.GeneInfo_WID from "
                 + ProteinTables.getInstance().PROTEINREFSEQ
                 + " p inner join "
-                + GeneTables.GENE2ACCESSION
+                + GeneTables.getInstance().GENE2PROTEINACCESSION
                 + " g on p.Id = g.ProteinAccession)"
                 + " UNION "
                 + " (select pa.Protein_WID,a.GeneInfo_WID from "
-                + GeneTables.GENE2ACCESSION
+                + GeneTables.getInstance().GENE2PROTEINACCESSION
                 + " a inner join "
                 + GeneTables.getInstance().GENEREFSEQUNIPROT
                 + " gp on gp.ProteinAccession = a.ProteinAccession inner join "

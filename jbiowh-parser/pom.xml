@@ -4,7 +4,7 @@
 
     <groupId>org</groupId>
     <artifactId>jbiowh-parser</artifactId>
-    <version>5.0.3</version>
+    <version>6.0.0</version>
     <packaging>jar</packaging>
 
     <name>jbiowh-parser</name>
@@ -97,18 +97,18 @@
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-core</artifactId>
-            <version>5.0.3</version>
+            <version>6.0.0</version>
         </dependency>
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-dbms</artifactId>
-            <version>5.0.3</version>
+            <version>6.0.0</version>
         </dependency>
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-persistence</artifactId>
-            <version>5.0.3</version>
-        </dependency>
+            <version>6.0.0</version>
+        </dependency>        
         <dependency>
             <groupId>net.sf.jopt-simple</groupId>
             <artifactId>jopt-simple</artifactId>

@@ -61,6 +61,7 @@ public class GeneBankFlatParser {
     private final String TAXON = "taxon";
     private final String ORGANISM = "ORGANISM";
     private final String LOCUS_TAG = "locus_tag";
+    private final String TRANSLATION = "translation";
 
     /**
      * This method explore the GeneBank directory and insert into the JBioWH
@@ -81,7 +82,7 @@ public class GeneBankFlatParser {
 
         long startTime = System.currentTimeMillis();
         if (dir.isDirectory()) {
-            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{".gbk", ".gbk.gz",".seq", ".seq.gz" });
+            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{".gbk", ".gbk.gz", ".seq", ".seq.gz"});
             int i = 0;
             for (File file : files) {
                 whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneBankTables.getInstance().GENEBANKCDSTEMP);
@@ -105,16 +106,14 @@ public class GeneBankFlatParser {
 
                 VerbLogger.getInstance().log(this.getClass(), "Inserting into table: " + GeneBankTables.GENEBANKCDS_HAS_GENEINFO);
 
-
                 whdbmsFactory.executeUpdate("insert ignore into "
                         + GeneBankTables.GENEBANKCDS_HAS_GENEINFO
                         + " (GeneBankCDS_WID,GeneInfo_WID) "
                         + " (select c.WID,a.GeneInfo_WID from "
                         + GeneBankTables.getInstance().GENEBANKCDSTEMP
                         + " c inner join "
-                        + GeneTables.GENE2ACCESSION
+                        + GeneTables.getInstance().GENE2PROTEINACCESSION
                         + " a on c.ProteinGi = a.ProteinGi)");
-
 
                 whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneBankTables.getInstance().GENEBANKCDSTEMP);
                 String strTime = String.format("%.2f", ((float) ((((long) (System.currentTimeMillis() - startTime) / 1000)) / i) * (files.size() - i) / 3600.0));
@@ -186,6 +185,7 @@ public class GeneBankFlatParser {
                         ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDS, c.getProteinId(), "\t");
                         ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDS, c.getGene(), "\t");
                         ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDS, c.getLocusTag(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDS, c.isTranslation(), "\t");
                         ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDS, c.getGeneBankWID(), "\n");
 
                         ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSTEMP, c.getWid(), "\t");
@@ -304,13 +304,13 @@ public class GeneBankFlatParser {
                             reader.reset();
                             break;
                         }
-                        if (line.contains(";") || line.trim().endsWith(".")){
+                        if (line.contains(";") || line.trim().endsWith(".")) {
                             lineage.append(line.trim()).append(" ");
                         }
                         reader.mark(1000000);
                     }
                     if (!lineage.toString().isEmpty()) {
-                            geneBank.setOrganism(lineage.toString().trim());
+                        geneBank.setOrganism(lineage.toString().trim());
                     }
                 }
                 if (line.startsWith(FEATURES)) {
@@ -428,6 +428,11 @@ public class GeneBankFlatParser {
                         if (map.containsKey(LOCUS_TAG)) {
                             cds.setLocusTag((String) map.get(LOCUS_TAG));
                         }
+                        if (map.containsKey(TRANSLATION)) {
+                            cds.setTranslation(true);
+                        }else{
+                            cds.setTranslation(false);
+                        }
                         geneBank.getGeneBankCDSs().add(cds);
                     } else {
                         GeneBankFeatures feature = new GeneBankFeatures();
@@ -518,7 +523,17 @@ public class GeneBankFlatParser {
                                         if (m.groupCount() == 1) {
                                             map.put(LOCUS_TAG, m.group(1));
                                         } else {
-                                            throw new IOException("Bad " + GENE + " line: " + line);
+                                            throw new IOException("Bad " + LOCUS_TAG + " line: " + line);
+                                        }
+                                    } else {
+                                        p = Pattern.compile("(?:" + TRANSLATION + "=\")(\\w.+)");
+                                        m = p.matcher(line.trim());
+                                        if (m.find()) {
+                                            if (m.groupCount() == 1) {
+                                                map.put(TRANSLATION, 1);
+                                            } else {
+                                                throw new IOException("Bad " + TRANSLATION + " line: " + line);
+                                            }
                                         }
                                     }
                                 }

@@ -48,7 +48,7 @@ public class GeneBankGeneLink {
                 + " (select c.WID,a.GeneInfo_WID from "
                 + GeneBankTables.getInstance().GENEBANKCDS
                 + " c inner join "
-                + GeneTables.GENE2ACCESSION
+                + GeneTables.getInstance().GENE2PROTEINACCESSION
                 + " a on c.ProteinGi = a.ProteinGi)");
     }
 }
