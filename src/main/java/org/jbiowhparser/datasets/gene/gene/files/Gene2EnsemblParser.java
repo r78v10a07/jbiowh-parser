@@ -46,8 +46,6 @@ public class Gene2EnsemblParser {
                 + "ProteinAccession=REPLACE(@ProteinAccession,'-',NULL),"
                 + "EnsemblProteinIdentifier=REPLACE(@EnsemblProteinIdentifier,'-',NULL)");
 
-        whdbmsFactory.executeUpdate("ALTER TABLE " + GeneTables.getInstance().GENE2ENSEMBL + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
-
         whdbmsFactory.executeUpdate("insert into "
                 + GeneTables.getInstance().GENE2ENSEMBL
                 + "(GeneInfo_WID,"
@@ -69,9 +67,6 @@ public class Gene2EnsemblParser {
                 + GeneTables.getInstance().GENE2ENSEMBLTEMP
                 + " a on a.GeneID = g.GeneID");
 
-        WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
-                + GeneTables.getInstance().GENE2ENSEMBL, "WID"));
-
-        whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneTables.getInstance().GENE2ENSEMBLTEMP);
+       whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneTables.getInstance().GENE2ENSEMBLTEMP);
     }
 }

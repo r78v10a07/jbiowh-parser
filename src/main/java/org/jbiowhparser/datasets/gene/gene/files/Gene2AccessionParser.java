@@ -29,8 +29,12 @@ public class Gene2AccessionParser {
         if (DataSetPersistence.getInstance().isDroptables()) {
             VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + GeneTables.getInstance().GENE2ACCESSIONTEMP);
             whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneTables.getInstance().GENE2ACCESSIONTEMP);
-            VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + GeneTables.GENE2ACCESSION);
-            whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneTables.GENE2ACCESSION);
+            VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + GeneTables.getInstance().GENE2PROTEINACCESSION);
+            whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneTables.getInstance().GENE2PROTEINACCESSION);
+            VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + GeneTables.getInstance().GENE2RNANUCLEOTIDE);
+            whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneTables.getInstance().GENE2RNANUCLEOTIDE);
+            VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + GeneTables.getInstance().GENE2GENOMICNUCLEOTIDE);
+            whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneTables.getInstance().GENE2GENOMICNUCLEOTIDE);
         }
 
         VerbLogger.getInstance().log(this.getClass(), "Inserting the " + GeneTables.getInstance().GENE2ACCESSIONFILE + " file");
@@ -52,18 +56,41 @@ public class Gene2AccessionParser {
                 + "Orientation=REPLACE(@Orientation,'\\?',NULL),"
                 + "Assembly=REPLACE(@Assembly,'-',NULL)");
 
-        whdbmsFactory.executeUpdate("ALTER TABLE " + GeneTables.GENE2ACCESSION + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
-
         whdbmsFactory.executeUpdate("insert into "
-                + GeneTables.GENE2ACCESSION
+                + GeneTables.getInstance().GENE2PROTEINACCESSION
                 + "(GeneInfo_WID,"
-                + "Status,"
-                + "RNANucleotideAccession,"
-                + "RNANucleotideAccessionVersion,"
-                + "RNANucleotideGi,"
                 + "ProteinAccession,"
                 + "ProteinAccessionVersion,"
-                + "ProteinGi,"
+                + "ProteinGi) "
+                + "select g.WID,"
+                + "IF(LOCATE('.',a.ProteinAccession),SUBSTRING(a.ProteinAccession,1,LOCATE('.',a.ProteinAccession)-1),a.ProteinAccession),"
+                + "IF(LOCATE('.',a.ProteinAccession),SUBSTRING(a.ProteinAccession,LOCATE('.',a.ProteinAccession)+1),NULL),"
+                + "a.ProteinGi "
+                + "from "
+                + GeneTables.getInstance().GENEINFO
+                + " g inner join "
+                + GeneTables.getInstance().GENE2ACCESSIONTEMP
+                + " a on a.GeneID = g.GeneID where a.ProteinGi is not NULL");
+       
+        whdbmsFactory.executeUpdate("insert into "
+                + GeneTables.getInstance().GENE2RNANUCLEOTIDE
+                + "(GeneInfo_WID,"
+                + "RNANucleotideAccession,"
+                + "RNANucleotideAccessionVersion,"
+                + "RNANucleotideGi) "
+                + "select g.WID,"
+                + "IF(LOCATE('.',a.RNANucleotideAccession),SUBSTRING(a.RNANucleotideAccession,1,LOCATE('.',a.RNANucleotideAccession)-1),a.RNANucleotideAccession),"
+                + "IF(LOCATE('.',a.RNANucleotideAccession),SUBSTRING(a.RNANucleotideAccession,LOCATE('.',a.RNANucleotideAccession)+1),NULL),"
+                + "a.RNANucleotideGi "
+                + "from "
+                + GeneTables.getInstance().GENEINFO
+                + " g inner join "
+                + GeneTables.getInstance().GENE2ACCESSIONTEMP
+                + " a on a.GeneID = g.GeneID where a.RNANucleotideGi is not NULL");
+        
+        whdbmsFactory.executeUpdate("insert into "
+                + GeneTables.getInstance().GENE2GENOMICNUCLEOTIDE
+                + "(GeneInfo_WID,"
                 + "GenomicNucleotideAccession,"
                 + "GenomicNucleotideAccessionVersion,"
                 + "GenomicNucleotideGi,"
@@ -72,13 +99,6 @@ public class Gene2AccessionParser {
                 + "Orientation,"
                 + "Assembly) "
                 + "select g.WID,"
-                + "a.Status,"
-                + "IF(LOCATE('.',a.RNANucleotideAccession),SUBSTRING(a.RNANucleotideAccession,1,LOCATE('.',a.RNANucleotideAccession)-1),a.RNANucleotideAccession),"
-                + "IF(LOCATE('.',a.RNANucleotideAccession),SUBSTRING(a.RNANucleotideAccession,LOCATE('.',a.RNANucleotideAccession)+1),NULL),"
-                + "a.RNANucleotideGi,"
-                + "IF(LOCATE('.',a.ProteinAccession),SUBSTRING(a.ProteinAccession,1,LOCATE('.',a.ProteinAccession)-1),a.ProteinAccession),"
-                + "IF(LOCATE('.',a.ProteinAccession),SUBSTRING(a.ProteinAccession,LOCATE('.',a.ProteinAccession)+1),NULL),"
-                + "a.ProteinGi,"
                 + "IF(LOCATE('.',a.GenomicNucleotideAccession),SUBSTRING(a.GenomicNucleotideAccession,1,LOCATE('.',a.GenomicNucleotideAccession)-1),a.GenomicNucleotideAccession),"
                 + "IF(LOCATE('.',a.GenomicNucleotideAccession),SUBSTRING(a.GenomicNucleotideAccession,LOCATE('.',a.GenomicNucleotideAccession)+1),NULL),"
                 + "a.GenomicNucleotideGi,"
@@ -90,11 +110,8 @@ public class Gene2AccessionParser {
                 + GeneTables.getInstance().GENEINFO
                 + " g inner join "
                 + GeneTables.getInstance().GENE2ACCESSIONTEMP
-                + " a on a.GeneID = g.GeneID");
+                + " a on a.GeneID = g.GeneID where a.GenomicNucleotideGi is not NULL");
 
-        WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
-                + GeneTables.GENE2ACCESSION, "WID"));
-
-        whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneTables.getInstance().GENE2ACCESSIONTEMP);
+        //whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneTables.getInstance().GENE2ACCESSIONTEMP);
     }
 }

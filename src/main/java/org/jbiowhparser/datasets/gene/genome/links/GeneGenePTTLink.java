@@ -53,7 +53,7 @@ public class GeneGenePTTLink {
                 + GeneTables.GENEINFO_HAS_GENEPTT
                 + "(GeneInfo_WID,GenePTT_ProteinGi) "
                 + "select a.GeneInfo_WID,p.ProteinGI from "
-                + GeneTables.GENE2ACCESSION
+                + GeneTables.getInstance().GENE2PROTEINACCESSION
                 + " a inner join "
                 + GenePTTTables.GENEPTT
                 + " p on p.ProteinGi = a.ProteinGi group by a.GeneInfo_WID,p.ProteinGI");

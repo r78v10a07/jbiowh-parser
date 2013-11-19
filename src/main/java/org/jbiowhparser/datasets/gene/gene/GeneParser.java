@@ -2,7 +2,10 @@ package org.jbiowhparser.datasets.gene.gene;
 
 import java.sql.SQLException;
 import java.util.Date;
+import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMS;
+import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhparser.ParseFactory;
 import org.jbiowhparser.ParserBasic;
 import org.jbiowhparser.datasets.gene.gene.files.Gene2AccessionParser;
@@ -40,7 +43,15 @@ public class GeneParser extends ParserBasic implements ParseFactory {
     public void runLoader() throws SQLException {
         DataSetPersistence.getInstance().insertDataSet();
         WIDFactory.getInstance().getWIDFromDataBase();
-
+        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        
+        if (DataSetPersistence.getInstance().isDroptables()){
+            for (String table : GeneTables.getInstance().getTables()) {
+                VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + table);
+                whdbmsFactory.executeUpdate("TRUNCATE TABLE " + table);
+            }
+        }
+        
         ParseFiles.getInstance().start(GeneTables.getInstance().getTables(), DataSetPersistence.getInstance().getTempdir());
 
         GeneInfoParser geneinfo = new GeneInfoParser();

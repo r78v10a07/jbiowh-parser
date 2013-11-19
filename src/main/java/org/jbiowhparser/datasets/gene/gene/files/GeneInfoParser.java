@@ -51,7 +51,8 @@ public class GeneInfoParser {
 
         whdbmsFactory.executeUpdate("ALTER TABLE " + GeneTables.getInstance().GENEINFO + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
 
-        whdbmsFactory.loadTSVFile(GeneTables.getInstance().GENEINFO, DataSetPersistence.getInstance().getDirectory() + GeneTables.getInstance().GENE_INFO,
+        whdbmsFactory.loadTSVFile(GeneTables.getInstance().GENEINFO, 
+                DataSetPersistence.getInstance().getDirectory() + GeneTables.getInstance().GENE_INFO,
                 "  IGNORE 1 LINES"
                 + "(TaxID,GeneID,@Symbol,@LocusTag,@Synonyms,@dbXrefs,@Chromosome,@MapLocation,@Description,@TypeOfGene,"
                 + "@SymbolFromNomenclature,@FullNameFromNomenclatureAuthority,@NomenclatureStatus,@OtherDesignations,@ModificationDate)"
@@ -82,7 +83,7 @@ public class GeneInfoParser {
         ParseFiles.getInstance().getPrintWriterFromName(GeneTables.getInstance().GENEINFOWIDSYNONYMSTEMP).close();
         whdbmsFactory.loadTSVFile(GeneTables.getInstance().GENEINFOWIDSYNONYMSTEMP, ParseFiles.getInstance().getFileAbsolutName(GeneTables.getInstance().GENEINFOWIDSYNONYMSTEMP));
 
-        whdbmsFactory.executeUpdate("insert into "
+        whdbmsFactory.executeUpdate("insert IGNORE into "
                 + GeneTables.getInstance().GENEINFOSYNONYMS
                 + " (GeneInfo_WID,Synonyms) "
                 + "select g.WID,s.Synonyms from "
@@ -103,7 +104,7 @@ public class GeneInfoParser {
         ParseFiles.getInstance().getPrintWriterFromName(GeneTables.getInstance().GENEINFOWIDDBXREFSTEMP).close();
         whdbmsFactory.loadTSVFile(GeneTables.getInstance().GENEINFOWIDDBXREFSTEMP, ParseFiles.getInstance().getFileAbsolutName(GeneTables.getInstance().GENEINFOWIDDBXREFSTEMP));
 
-        whdbmsFactory.executeUpdate("insert into "
+        whdbmsFactory.executeUpdate("insert IGNORE into "
                 + GeneTables.getInstance().GENEINFODBXREFS
                 + " (GeneInfo_WID,DBName,ID) "
                 + "select g.WID,s.DBName,s.ID from "
