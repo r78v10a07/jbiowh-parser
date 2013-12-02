@@ -2,7 +2,6 @@ package org.jbiowhparser.datasets.protein.xml;
 
 import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhparser.datasets.protein.xml.tags.InteractantTags;
-import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.protein.ProteinTables;
 import org.xml.sax.Attributes;
 
@@ -28,8 +27,6 @@ public class Interactant extends InteractantTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public Interactant() {
         open = false;
@@ -38,14 +35,12 @@ public class Interactant extends InteractantTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
         if (qname.equals(getINTERACTANTFLAGS())) {
             open = false;
-            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTINTERACT, WIDFactory.getInstance().getWid(), "\t");
-            WIDFactory.getInstance().increaseWid();
             ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTINTERACT, CommentWID, "\t");
             ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTINTERACT, intactID, "\t");
             ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTINTERACT, id, "\t");
@@ -56,8 +51,10 @@ public class Interactant extends InteractantTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
+     * @param attributes
      * @param depth
+     * @param CommentWID
      */
     public void startElement(String qname, int depth, Attributes attributes, long CommentWID) {
         if (qname.equals(getINTERACTANTFLAGS())) {
@@ -74,7 +71,7 @@ public class Interactant extends InteractantTags {
     /**
      *
      * @param tagname
-     * @param name
+     * @param qname
      * @param depth
      */
     public void characters(String tagname, String qname, int depth) {
@@ -90,10 +87,18 @@ public class Interactant extends InteractantTags {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     *
+     * @param open
+     */
     public void setOpen(boolean open) {
         this.open = open;
     }

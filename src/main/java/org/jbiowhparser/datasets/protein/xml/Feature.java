@@ -1,7 +1,6 @@
 package org.jbiowhparser.datasets.protein.xml;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhparser.datasets.protein.xml.tags.FeatureTags;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
@@ -11,9 +10,9 @@ import org.xml.sax.Attributes;
 /**
  * This Class handled the XML Feature tags on Uniprot
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2012-11-08 14:37:19 +0100 (Thu, 08 Nov 2012) $
- * $LastChangedRevision: 322 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2012-11-08 14:37:19 +0100
+ * (Thu, 08 Nov 2012) $ $LastChangedRevision: 322 $
+ *
  * @since Oct 2, 2010
  * @see
  */
@@ -37,8 +36,6 @@ public class Feature extends FeatureTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public Feature() {
         open = false;
@@ -50,7 +47,7 @@ public class Feature extends FeatureTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -74,11 +71,9 @@ public class Feature extends FeatureTags {
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINFEATURE, original, "\n");
 
                 if (!variation.isEmpty()) {
-                    for (Iterator<String> it = variation.iterator(); it.hasNext();) {
-                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINFEATUREVARIATION, WIDFactory.getInstance().getWid(), "\t");
+                    for (String s : variation) {
                         ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINFEATUREVARIATION, WID, "\t");
-                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINFEATUREVARIATION, it.next(), "\n");
-                        WIDFactory.getInstance().increaseWid();
+                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINFEATUREVARIATION, s, "\n");
                     }
                     variation.clear();
                 }
@@ -89,7 +84,9 @@ public class Feature extends FeatureTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
+     * @param attributes
+     * @param WID
      * @param depth
      */
     public void startElement(String qname, int depth, Attributes attributes, long WID) {
@@ -127,7 +124,7 @@ public class Feature extends FeatureTags {
     /**
      *
      * @param tagname
-     * @param name
+     * @param qname
      * @param depth
      */
     public void characters(String tagname, String qname, int depth) {
@@ -143,10 +140,18 @@ public class Feature extends FeatureTags {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     *
+     * @param open
+     */
     public void setOpen(boolean open) {
         this.open = open;
     }

@@ -28,8 +28,6 @@ public class Conflict extends ConflictTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public Conflict() {
         open = false;
@@ -38,7 +36,7 @@ public class Conflict extends ConflictTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -56,8 +54,10 @@ public class Conflict extends ConflictTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param attributes
+     * @param WID
      */
     public void startElement(String qname, int depth, Attributes attributes, long WID) {
         if (open) {
@@ -81,10 +81,18 @@ public class Conflict extends ConflictTags {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     *
+     * @param open
+     */
     public void setOpen(boolean open) {
         this.open = open;
     }

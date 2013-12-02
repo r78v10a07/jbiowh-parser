@@ -1,7 +1,6 @@
 package org.jbiowhparser.datasets.protein.xml;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhparser.datasets.protein.xml.tags.DBReferenceTags;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
@@ -47,8 +46,6 @@ public class DBReference extends DBReferenceTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public DBReference() {
         open = false;
@@ -57,8 +54,9 @@ public class DBReference extends DBReferenceTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
+     * @param print
      */
     public void endElement(String qname, int depth, Boolean print) {
         if (open) {
@@ -137,11 +135,10 @@ public class DBReference extends DBReferenceTags {
                         ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINDBREFERENCE, id, "\t");
                         ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINDBREFERENCE, evidence, "\n");
                         if (!propertyTypes.isEmpty()) {
-                            for (Iterator<PropertyType> it = propertyTypes.iterator(); it.hasNext();) {
-                                propertyType = it.next();
+                            for (PropertyType p : propertyTypes) {
                                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINDBREFERENCEPROPERTY, WID, "\t");
-                                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINDBREFERENCEPROPERTY, propertyType.type, "\t");
-                                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINDBREFERENCEPROPERTY, propertyType.value, "\n");
+                                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINDBREFERENCEPROPERTY, p.type, "\t");
+                                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINDBREFERENCEPROPERTY, p.value, "\n");
                             }
                             propertyTypes.clear();
                         }
@@ -154,8 +151,10 @@ public class DBReference extends DBReferenceTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param attributes
+     * @param WID
      */
     public void startElement(String qname, int depth, Attributes attributes, long WID) {
         if (open) {
@@ -223,18 +222,34 @@ public class DBReference extends DBReferenceTags {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     *
+     * @param open
+     */
     public void setOpen(boolean open) {
         this.open = open;
     }

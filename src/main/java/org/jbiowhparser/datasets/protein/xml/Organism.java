@@ -1,7 +1,6 @@
 package org.jbiowhparser.datasets.protein.xml;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhparser.datasets.protein.xml.tags.OrganismTags;
 import org.jbiowhpersistence.datasets.protein.ProteinTables;
@@ -29,8 +28,6 @@ public class Organism extends OrganismTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public Organism() {
         open = false;
@@ -42,7 +39,7 @@ public class Organism extends OrganismTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -58,11 +55,10 @@ public class Organism extends OrganismTags {
             open = false;
 
             if (!dbReferences.isEmpty()) {
-                for (Iterator<DBReference> it = dbReferences.iterator(); it.hasNext();) {
-                    dbReference = it.next();
-                    if (dbReference.getType().equals("NCBI Taxonomy")) {
+                for (DBReference d : dbReferences) {
+                    if (d.getType().equals("NCBI Taxonomy")) {
                         ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINTAXID, WID, "\t");
-                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINTAXID, dbReference.getId(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINTAXID, d.getId(), "\t");
                         if (host == 0) {
                             ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINTAXID, 0, "\n");
                         } else {
@@ -79,8 +75,10 @@ public class Organism extends OrganismTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param attributes
+     * @param WID
      */
     public void startElement(String qname, int depth, Attributes attributes, long WID) {
         if (open) {
@@ -101,10 +99,18 @@ public class Organism extends OrganismTags {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     *
+     * @param open
+     */
     public void setOpen(boolean open) {
         this.open = open;
     }

@@ -1,19 +1,17 @@
 package org.jbiowhparser.datasets.protein.xml;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhparser.datasets.protein.xml.tags.ProteinTypeTags;
-import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.protein.ProteinTables;
 import org.xml.sax.Attributes;
 
 /**
  * This Class handled the ProteinType on Uniprot
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2012-11-08 14:37:19 +0100 (Thu, 08 Nov 2012) $
- * $LastChangedRevision: 322 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2012-11-08 14:37:19 +0100
+ * (Thu, 08 Nov 2012) $ $LastChangedRevision: 322 $
+ *
  * @since Sep 30, 2010
  * @see
  */
@@ -38,8 +36,6 @@ public class ProteinType extends ProteinTypeTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public ProteinType() {
         open = false;
@@ -52,7 +48,7 @@ public class ProteinType extends ProteinTypeTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -103,44 +99,36 @@ public class ProteinType extends ProteinTypeTags {
             open = false;
 
             if (!proteinNameGroups.isEmpty()) {
-                for (Iterator<ProteinNameGroup> it = proteinNameGroups.iterator(); it.hasNext();) {
-                    proteinNameGroup = it.next();
-                    if (proteinNameGroup.fullName != null) {
-                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, WIDFactory.getInstance().getWid(), "\t");
-                        WIDFactory.getInstance().increaseWid();
+                for (ProteinNameGroup p : proteinNameGroups) {
+                    if (p.fullName != null) {
                         ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinWID, "\t");
-                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinNameGroup.nameGroup, "\t");
+                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, p.nameGroup, "\t");
                         ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, getFULLNAMEFLAGS(), "\t");
-                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinNameGroup.component, "\t");
-                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinNameGroup.domain, "\t");
-                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinNameGroup.fullName.getData(), "\t");
-                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinNameGroup.fullName.getEvidence(), "\t");
-                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinNameGroup.fullName.getStatus(), "\n");
+                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, p.component, "\t");
+                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, p.domain, "\t");
+                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, p.fullName.getData(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, p.fullName.getEvidence(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, p.fullName.getStatus(), "\n");
                     }
 
-                    if (!proteinNameGroup.shortName.isEmpty()) {
-                        for (Iterator<EvidencedStringType> it1 = proteinNameGroup.shortName.iterator(); it1.hasNext();) {
-                            shortName = it1.next();
-                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, WIDFactory.getInstance().getWid(), "\t");
-                            WIDFactory.getInstance().increaseWid();
+                    if (!p.shortName.isEmpty()) {
+                        for (EvidencedStringType ev : p.shortName) {
                             ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinWID, "\t");
-                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinNameGroup.nameGroup, "\t");
+                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, p.nameGroup, "\t");
                             ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, getSHORTNAMEFLAGS(), "\t");
-                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinNameGroup.component, "\t");
-                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinNameGroup.domain, "\t");
-                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, shortName.getData(), "\t");
-                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, shortName.getEvidence(), "\t");
-                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, shortName.getStatus(), "\n");
+                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, p.component, "\t");
+                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, p.domain, "\t");
+                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, ev.getData(), "\t");
+                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, ev.getEvidence(), "\t");
+                            ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, ev.getStatus(), "\n");
                         }
-                        proteinNameGroup.shortName.clear();
+                        p.shortName.clear();
                     }
                 }
                 proteinNameGroups.clear();
             }
 
             if (allergenName != null) {
-                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, WIDFactory.getInstance().getWid(), "\t");
-                WIDFactory.getInstance().increaseWid();
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinWID, "\t");
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, getALLERGENNAMEFLAGS(), "\t");
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, (String) null, "\t");
@@ -151,8 +139,6 @@ public class ProteinType extends ProteinTypeTags {
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, allergenName.getStatus(), "\n");
             }
             if (biotechName != null) {
-                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, WIDFactory.getInstance().getWid(), "\t");
-                WIDFactory.getInstance().increaseWid();
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinWID, "\t");
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, getBIOTECHNAMEFLAGS(), "\t");
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, (String) null, "\t");
@@ -163,34 +149,28 @@ public class ProteinType extends ProteinTypeTags {
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, biotechName.getStatus(), "\n");
             }
             if (!cdAntigenNames.isEmpty()) {
-                for (Iterator<EvidencedStringType> it = cdAntigenNames.iterator(); it.hasNext();) {
-                    shortName = it.next();
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, WIDFactory.getInstance().getWid(), "\t");
-                    WIDFactory.getInstance().increaseWid();
+                for (EvidencedStringType ev : cdAntigenNames) {
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinWID, "\t");
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, getCDANTIGENNAMEFLAGS(), "\t");
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, (String) null, "\t");
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, 0, "\t");
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, 0, "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, shortName.getData(), "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, shortName.getEvidence(), "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, shortName.getStatus(), "\n");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, ev.getData(), "\t");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, ev.getEvidence(), "\t");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, ev.getStatus(), "\n");
                 }
                 cdAntigenNames.clear();
             }
             if (!innNames.isEmpty()) {
-                for (Iterator<EvidencedStringType> it = innNames.iterator(); it.hasNext();) {
-                    shortName = it.next();
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, WIDFactory.getInstance().getWid(), "\t");
-                    WIDFactory.getInstance().increaseWid();
+                for (EvidencedStringType ev : innNames) {
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, proteinWID, "\t");
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, getINNNAMEFLAGS(), "\t");
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, (String) null, "\t");
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, 0, "\t");
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, 0, "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, shortName.getData(), "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, shortName.getEvidence(), "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, shortName.getStatus(), "\n");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, ev.getData(), "\t");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, ev.getEvidence(), "\t");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINLONGNAME, ev.getStatus(), "\n");
                 }
                 innNames.clear();
             }
@@ -200,8 +180,10 @@ public class ProteinType extends ProteinTypeTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param attributes
+     * @param proteinWID
      */
     public void startElement(String qname, int depth, Attributes attributes, long proteinWID) {
         if (open) {
@@ -276,7 +258,7 @@ public class ProteinType extends ProteinTypeTags {
     /**
      *
      * @param tagname
-     * @param name
+     * @param qname
      * @param depth
      */
     public void characters(String tagname, String qname, int depth) {

@@ -29,8 +29,6 @@ public class Sequence extends SequenceTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public Sequence() {
         open = false;
@@ -39,7 +37,7 @@ public class Sequence extends SequenceTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -53,8 +51,9 @@ public class Sequence extends SequenceTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param attributes
      */
     public void startElement(String qname, int depth, Attributes attributes) {
         if (qname.equals(getSEQUENCEFLAGS())) {
@@ -75,7 +74,7 @@ public class Sequence extends SequenceTags {
     /**
      *
      * @param tagname
-     * @param name
+     * @param qname
      * @param depth
      */
     public void characters(String tagname, String qname, int depth) {
@@ -86,74 +85,146 @@ public class Sequence extends SequenceTags {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public String getChecksum() {
         return checksum;
     }
 
+    /**
+     *
+     * @param checksum
+     */
     public void setChecksum(String checksum) {
         this.checksum = checksum;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getFragment() {
         return fragment;
     }
 
+    /**
+     *
+     * @param fragment
+     */
     public void setFragment(String fragment) {
         this.fragment = fragment;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getLength() {
         return length;
     }
 
+    /**
+     *
+     * @param length
+     */
     public void setLength(String length) {
         this.length = length;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getMass() {
         return mass;
     }
 
+    /**
+     *
+     * @param mass
+     */
     public void setMass(String mass) {
         this.mass = mass;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getModified() {
         return modified;
     }
 
+    /**
+     *
+     * @param modified
+     */
     public void setModified(String modified) {
         this.modified = modified;
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     *
+     * @param open
+     */
     public void setOpen(boolean open) {
         this.open = open;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getPrecursor() {
         return precursor;
     }
 
+    /**
+     *
+     * @param precursor
+     */
     public void setPrecursor(String precursor) {
         this.precursor = precursor;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getSeq() {
         return seq;
     }
 
+    /**
+     *
+     * @param seq
+     */
     public void setSeq(String seq) {
         this.seq = seq;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getVersion() {
         return version;
     }
 
+    /**
+     *
+     * @param version
+     */
     public void setVersion(String version) {
         this.version = version;
     }

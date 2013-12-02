@@ -5,9 +5,9 @@ import org.jbiowhparser.datasets.protein.xml.tags.EvidencedStringTypeTags;
 /**
  * This Class handled the EvidencedStringType on Uniprot
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2012-10-03 22:11:05 +0200 (Wed, 03 Oct 2012) $
- * $LastChangedRevision: 270 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2012-10-03 22:11:05 +0200
+ * (Wed, 03 Oct 2012) $ $LastChangedRevision: 270 $
+ *
  * @since Sep 30, 2010
  * @see
  */
@@ -18,13 +18,6 @@ public class EvidencedStringType extends EvidencedStringTypeTags {
     private String status = null;
     private String data = null;
 
-    /**
-     * This constructor initialize the WH file manager and the WH DataSet
-     * manager
-     *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
-     */
     public EvidencedStringType() {
         open = false;
         evidence = null;

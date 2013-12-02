@@ -46,8 +46,6 @@ public class Comment extends CommentTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public Comment() {
         open = false;
@@ -64,7 +62,7 @@ public class Comment extends CommentTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -136,8 +134,10 @@ public class Comment extends CommentTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param WID
+     * @param attributes
      */
     public void startElement(String qname, int depth, Attributes attributes, long WID) {
         if (open) {
@@ -218,7 +218,7 @@ public class Comment extends CommentTags {
     /**
      *
      * @param tagname
-     * @param name
+     * @param qname
      * @param depth
      */
     public void characters(String tagname, String qname, int depth) {
@@ -253,10 +253,18 @@ public class Comment extends CommentTags {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     *
+     * @param open
+     */
     public void setOpen(boolean open) {
         this.open = open;
     }

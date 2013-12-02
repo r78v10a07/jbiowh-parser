@@ -29,8 +29,6 @@ public class Gene extends GeneTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public Gene() {
         open = false;
@@ -41,7 +39,7 @@ public class Gene extends GeneTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -58,14 +56,11 @@ public class Gene extends GeneTags {
             open = false;
 
             count = 1;
-            for (Iterator<GeneNameType> it = geneNameTypes.iterator(); it.hasNext();) {
-                geneNameType = it.next();
-                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINGENENAME, WIDFactory.getInstance().getWid(), "\t");
-                WIDFactory.getInstance().increaseWid();
+            for (GeneNameType g: geneNameTypes) {
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINGENENAME, proteinWID, "\t");
-                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINGENENAME, geneNameType.type, "\t");
-                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINGENENAME, geneNameType.name, "\t");
-                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINGENENAME, geneNameType.evidence, "\n");
+                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINGENENAME, g.type, "\t");
+                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINGENENAME, g.name, "\t");
+                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINGENENAME, g.evidence, "\n");
                 count++;
             }
             geneNameTypes.clear();
@@ -75,8 +70,10 @@ public class Gene extends GeneTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param attributes
+     * @param proteinWID
      */
     public void startElement(String qname, int depth, Attributes attributes, long proteinWID) {
         if (open) {
@@ -101,7 +98,7 @@ public class Gene extends GeneTags {
     /**
      *
      * @param tagname
-     * @param name
+     * @param qname
      * @param depth
      */
     public void characters(String tagname, String qname, int depth) {
