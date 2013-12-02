@@ -27,8 +27,6 @@ public class Keyword extends KeywordTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public Keyword() {
         open = false;
@@ -37,7 +35,7 @@ public class Keyword extends KeywordTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -54,8 +52,10 @@ public class Keyword extends KeywordTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param WID
+     * @param attributes
      */
     public void startElement(String qname, int depth, Attributes attributes, long WID) {
         if (qname.equals(getKEYWORDFLAGS())) {
@@ -72,7 +72,7 @@ public class Keyword extends KeywordTags {
     /**
      *
      * @param tagname
-     * @param name
+     * @param qname
      * @param depth
      */
     public void characters(String tagname, String qname, int depth) {
@@ -85,10 +85,18 @@ public class Keyword extends KeywordTags {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     *
+     * @param open
+     */
     public void setOpen(boolean open) {
         this.open = open;
     }

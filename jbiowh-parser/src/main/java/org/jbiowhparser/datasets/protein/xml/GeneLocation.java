@@ -29,8 +29,6 @@ public class GeneLocation extends GeneLocationTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public GeneLocation() {
         open = false;
@@ -39,7 +37,7 @@ public class GeneLocation extends GeneLocationTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -57,8 +55,10 @@ public class GeneLocation extends GeneLocationTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param attributes
+     * @param proteinWID
      */
     public void startElement(String qname, int depth, Attributes attributes, long proteinWID) {
         if (open) {
@@ -85,7 +85,7 @@ public class GeneLocation extends GeneLocationTags {
     /**
      *
      * @param tagname
-     * @param name
+     * @param qname
      * @param depth
      */
     public void characters(String tagname, String qname, int depth) {
@@ -98,10 +98,18 @@ public class GeneLocation extends GeneLocationTags {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     *
+     * @param open
+     */
     public void setOpen(boolean open) {
         this.open = open;
     }

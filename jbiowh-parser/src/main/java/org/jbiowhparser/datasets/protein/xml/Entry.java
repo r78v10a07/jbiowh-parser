@@ -1,7 +1,6 @@
 package org.jbiowhparser.datasets.protein.xml;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhparser.datasets.protein.xml.tags.EntryTags;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
@@ -12,9 +11,9 @@ import org.xml.sax.Attributes;
 /**
  * This Class handled the XML Entry tag on Uniprot
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2012-11-08 14:37:19 +0100 (Thu, 08 Nov 2012) $
- * $LastChangedRevision: 322 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2012-11-08 14:37:19 +0100
+ * (Thu, 08 Nov 2012) $ $LastChangedRevision: 322 $
+ *
  * @since Sep 29, 2010
  * @see
  */
@@ -45,8 +44,6 @@ public class Entry extends EntryTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public Entry() {
         open = false;
@@ -67,7 +64,7 @@ public class Entry extends EntryTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -134,18 +131,18 @@ public class Entry extends EntryTags {
             ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEIN, DataSetPersistence.getInstance().getDataset().getWid(), "\n");
 
             count = 1;
-            for (Iterator<String> it = name.iterator(); it.hasNext();) {
+            for (String n : name) {
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINNAME, WID, "\t");
-                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINNAME, it.next(), "\t");
+                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINNAME, n, "\t");
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINNAME, count, "\n");
                 count++;
             }
             name.clear();
 
             count = 1;
-            for (Iterator<String> it = accession.iterator(); it.hasNext();) {
+            for (String a : accession) {
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINACCESSIONNUMBER, WID, "\t");
-                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINACCESSIONNUMBER, it.next(), "\t");
+                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINACCESSIONNUMBER, a, "\t");
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINACCESSIONNUMBER, count, "\n");
                 count++;
             }
@@ -156,8 +153,9 @@ public class Entry extends EntryTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param attributes
      */
     public void startElement(String qname, int depth, Attributes attributes) {
         if (open) {
@@ -250,7 +248,7 @@ public class Entry extends EntryTags {
     /**
      *
      * @param tagname
-     * @param name
+     * @param qname
      * @param depth
      */
     public void characters(String tagname, String qname, int depth) {

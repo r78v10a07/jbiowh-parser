@@ -1,10 +1,8 @@
 package org.jbiowhparser.datasets.protein.xml;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhparser.datasets.protein.xml.tags.SubCellularLocationTags;
-import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.protein.ProteinTables;
 import org.xml.sax.Attributes;
 
@@ -33,8 +31,6 @@ public class SubCellularLocation extends SubCellularLocationTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public SubCellularLocation() {
         open = false;
@@ -47,7 +43,7 @@ public class SubCellularLocation extends SubCellularLocationTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -71,41 +67,32 @@ public class SubCellularLocation extends SubCellularLocationTags {
             open = false;
 
             if (!locations.isEmpty()) {
-                for (Iterator<EvidencedStringType> it = locations.iterator(); it.hasNext();) {
-                    location = it.next();
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, WIDFactory.getInstance().getWid(), "\t");
-                    WIDFactory.getInstance().increaseWid();
+                for (EvidencedStringType e : locations) {
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, CommentWID, "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, location.getData(), "\t");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, e.getData(), "\t");
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, getLOCATIONFLAGS(), "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, location.getEvidence(), "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, location.getStatus(), "\n");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, e.getEvidence(), "\t");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, e.getStatus(), "\n");
                 }
                 locations.clear();
             }
             if (!topologys.isEmpty()) {
-                for (Iterator<EvidencedStringType> it = topologys.iterator(); it.hasNext();) {
-                    topology = it.next();
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, WIDFactory.getInstance().getWid(), "\t");
-                    WIDFactory.getInstance().increaseWid();
+                for (EvidencedStringType t : topologys) {
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, CommentWID, "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, topology.getData(), "\t");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, t.getData(), "\t");
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, getTOPOLOGYFLAGS(), "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, topology.getEvidence(), "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, topology.getStatus(), "\n");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, t.getEvidence(), "\t");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, t.getStatus(), "\n");
                 }
                 topologys.clear();
             }
             if (!orientations.isEmpty()) {
-                for (Iterator<EvidencedStringType> it = orientations.iterator(); it.hasNext();) {
-                    orientation = it.next();
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, WIDFactory.getInstance().getWid(), "\t");
-                    WIDFactory.getInstance().increaseWid();
+                for (EvidencedStringType e : orientations) {
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, CommentWID, "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, orientation.getData(), "\t");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, e.getData(), "\t");
                     ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, getORIENTATIONFLAGS(), "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, orientation.getEvidence(), "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, orientation.getStatus(), "\n");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, e.getEvidence(), "\t");
+                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTSUBCELLULARLOCATION, e.getStatus(), "\n");
                 }
                 orientations.clear();
             }
@@ -115,8 +102,10 @@ public class SubCellularLocation extends SubCellularLocationTags {
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param attributes
+     * @param WID
      */
     public void startElement(String qname, int depth, Attributes attributes, long WID) {
         if (open) {
@@ -158,7 +147,7 @@ public class SubCellularLocation extends SubCellularLocationTags {
     /**
      *
      * @param tagname
-     * @param name
+     * @param qname
      * @param depth
      */
     public void characters(String tagname, String qname, int depth) {
@@ -177,10 +166,18 @@ public class SubCellularLocation extends SubCellularLocationTags {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     *
+     * @param open
+     */
     public void setOpen(boolean open) {
         this.open = open;
     }

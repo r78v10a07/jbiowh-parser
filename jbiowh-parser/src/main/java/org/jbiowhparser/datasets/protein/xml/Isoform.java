@@ -1,7 +1,6 @@
 package org.jbiowhparser.datasets.protein.xml;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhparser.datasets.protein.xml.tags.IsoformTags;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
@@ -11,9 +10,9 @@ import org.xml.sax.Attributes;
 /**
  * This Class handled the XML Isoform Tags on Uniprot
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2012-11-08 14:37:19 +0100 (Thu, 08 Nov 2012) $
- * $LastChangedRevision: 322 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2012-11-08 14:37:19 +0100
+ * (Thu, 08 Nov 2012) $ $LastChangedRevision: 322 $
+ *
  * @since Oct 1, 2010
  * @see
  */
@@ -33,8 +32,6 @@ public class Isoform extends IsoformTags {
      * This constructor initialize the WH file manager and the WH DataSet
      * manager
      *
-     * @param files the WH file manager
-     * @param whdataset the WH DataSet manager
      */
     public Isoform() {
         open = false;
@@ -46,7 +43,7 @@ public class Isoform extends IsoformTags {
     /**
      * This is the endElement method for the Header on GO
      *
-     * @param name XML Tag
+     * @param qname
      * @param depth XML depth
      */
     public void endElement(String qname, int depth) {
@@ -78,31 +75,28 @@ public class Isoform extends IsoformTags {
                 ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINCOMMENTISOFORM, "\\N", "\n");
             }
 
-            if (!id.isEmpty()) {
-                for (Iterator<String> it = id.iterator(); it.hasNext();) {
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINISOFORMID, WID, "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINISOFORMID, it.next(), "\n");
-                }
-                id.clear();
+            for (String s : id) {
+                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINISOFORMID, WID, "\t");
+                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINISOFORMID, s, "\n");
             }
+            id.clear();
 
-            if (!names.isEmpty()) {
-                for (Iterator<IsoformData> it = names.iterator(); it.hasNext();) {
-                    name = it.next();
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINISOFORMNAME, WID, "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINISOFORMNAME, name.data, "\t");
-                    ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINISOFORMNAME, name.attrib, "\n");
-                }
-                names.clear();
+            for (IsoformData d : names) {
+                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINISOFORMNAME, WID, "\t");
+                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINISOFORMNAME, d.data, "\t");
+                ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINISOFORMNAME, d.attrib, "\n");
             }
+            names.clear();
         }
     }
 
     /**
      * This is the method for the Header on GO
      *
-     * @param name
+     * @param qname
      * @param depth
+     * @param attributes
+     * @param WID
      */
     public void startElement(String qname, int depth, Attributes attributes, long WID) {
         if (open) {
@@ -135,10 +129,18 @@ public class Isoform extends IsoformTags {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isOpen() {
         return open;
     }
 
+    /**
+     *
+     * @param open
+     */
     public void setOpen(boolean open) {
         this.open = open;
     }
@@ -146,7 +148,7 @@ public class Isoform extends IsoformTags {
     /**
      *
      * @param tagname
-     * @param name
+     * @param qname
      * @param depth
      */
     public void characters(String tagname, String qname, int depth) {
