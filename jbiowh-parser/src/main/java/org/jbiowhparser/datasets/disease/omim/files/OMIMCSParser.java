@@ -12,9 +12,9 @@ import org.jbiowhpersistence.datasets.disease.omim.entities.OMIMCSData;
 /**
  * This Class is the OMIM CS field parser
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2012-11-08 14:37:19 +0100 (Thu, 08 Nov 2012) $
- * $LastChangedRevision: 322 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2012-11-08 14:37:19 +0100
+ * (Thu, 08 Nov 2012) $ $LastChangedRevision: 322 $
+ *
  * @since Jul 17, 2012
  */
 public class OMIMCSParser extends OMIMTabs {
@@ -32,7 +32,7 @@ public class OMIMCSParser extends OMIMTabs {
         String line;
         StringBuilder builder = new StringBuilder();
         OMIMCS omimCS = null;
-        
+
         while ((line = reader.readLine()) != null) {
             if (isField(line) || isRecord(line)) {
                 reader.reset();
@@ -42,9 +42,8 @@ public class OMIMCSParser extends OMIMTabs {
                 if (omimCS != null) {
                     Set<OMIMCSData> cssData = new HashSet<>();
                     for (String a : builder.toString().split(";")) {
-                        OMIMCSData data = new OMIMCSData(WIDFactory.getInstance().getWid(), omimCS.getWid(), a.trim());
+                        OMIMCSData data = new OMIMCSData(a.trim());
                         cssData.add(data);
-                        WIDFactory.getInstance().increaseWid();
                     }
                     omimCS.setOmimCSDatas(cssData);
                     css.add(omimCS);
@@ -55,9 +54,8 @@ public class OMIMCSParser extends OMIMTabs {
                     if (omimCS != null) {
                         Set<OMIMCSData> cssData = new HashSet<>();
                         for (String a : builder.toString().split(";")) {
-                            OMIMCSData data = new OMIMCSData(WIDFactory.getInstance().getWid(), omimCS.getWid(), a.trim());
+                            OMIMCSData data = new OMIMCSData(a.trim());
                             cssData.add(data);
-                            WIDFactory.getInstance().increaseWid();
                         }
                         omimCS.setOmimCSDatas(cssData);
                         css.add(omimCS);
@@ -76,9 +74,8 @@ public class OMIMCSParser extends OMIMTabs {
         if (omimCS != null) {
             Set<OMIMCSData> cssData = new HashSet<>();
             for (String a : builder.toString().split(";")) {
-                OMIMCSData data = new OMIMCSData(WIDFactory.getInstance().getWid(), omimCS.getWid(), a.trim());
+                OMIMCSData data = new OMIMCSData(a.trim());
                 cssData.add(data);
-                WIDFactory.getInstance().increaseWid();
             }
             omimCS.setOmimCSDatas(cssData);
             css.add(omimCS);
