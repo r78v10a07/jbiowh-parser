@@ -17,9 +17,9 @@ import org.jbiowhpersistence.utils.entitymanager.JBioWHPersistence;
 /**
  * This Class is the parser for the OMIM omim file
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2013-03-19 09:38:47 +0100 (Tue, 19 Mar 2013) $
- * $LastChangedRevision: 396 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100
+ * (Tue, 19 Mar 2013) $ $LastChangedRevision: 396 $
+ *
  * @since Jul 16, 2012
  */
 public class OMIMTXTParser extends OMIMTabs {
@@ -47,6 +47,7 @@ public class OMIMTXTParser extends OMIMTabs {
                             VerbLogger.getInstance().log(this.getClass(),
                                     ex.getMessage());
                             VerbLogger.getInstance().setLevel(VerbLogger.getInstance().getInitialLevel());
+                            ex.printStackTrace(System.out);
                             System.exit(1);
                         } catch (Exception ex) {
                             VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
@@ -60,37 +61,39 @@ public class OMIMTXTParser extends OMIMTabs {
                     entry = new OMIM(WIDFactory.getInstance().getWid());
                     WIDFactory.getInstance().increaseWid();
                 }
-                if (isNO(line)) {
-                    entry.setOmimId(new Long(reader.readLine()));
-                }
-                if (isTI(line)) {
-                    entry.setOmimTIs((new OMIMTIParser()).parse(reader, entry.getWid()));
-                }
-                if (isTX(line)) {
-                    OMIMTXParser txs = new OMIMTXParser();
-                    entry.setOmimTXs(txs.parse(reader, entry.getWid()));
-                    entry.setTx(txs.getTx());
-                }
-                if (isRF(line)) {
-                    entry.setOmimRFs((new OMIMRFParser()).parse(reader, entry.getWid()));
-                }
-                if (isCS(line)) {
-                    entry.setOmimCSs((new OMIMCSParser()).parse(reader, entry.getWid()));
-                }
-                if (isCD(line)) {
-                    entry.setOmimCDs((new OMIMCDParser()).parse(reader, entry.getWid()));
-                }
-                if (isED(line)) {
-                    entry.setOmimEDs((new OMIMEDParser()).parse(reader, entry.getWid()));
-                }
-                if (isAV(line)) {
-                    entry.setOmimAVs((new OMIMAVParser()).parse(reader, entry.getWid()));
-                }
-                if (isSA(line)) {
-                    entry.setOmimSAs((new OMIMSAParser()).parse(reader, entry.getWid()));
-                }
-                if (isCN(line)) {
-                    entry.setOmimCNs((new OMIMCNParser()).parse(reader, entry.getWid()));
+                if (entry != null) {
+                    if (isNO(line)) {
+                        entry.setOmimId(new Long(reader.readLine()));
+                    }
+                    if (isTI(line)) {
+                        entry.setOmimTI((new OMIMTIParser()).parse(reader));
+                    }
+                    if (isTX(line)) {
+                        OMIMTXParser txs = new OMIMTXParser();
+                        entry.setOmimTX(txs.parse(reader));
+                        entry.setTx(txs.getTx());
+                    }
+                    if (isRF(line)) {
+                        entry.setOmimRF((new OMIMRFParser()).parse(reader));
+                    }
+                    if (isCS(line)) {
+                        entry.setOmimCS((new OMIMCSParser()).parse(reader, entry.getWid()));
+                    }
+                    if (isCD(line)) {
+                        entry.setOmimCD((new OMIMCDParser()).parse(reader));
+                    }
+                    if (isED(line)) {
+                        entry.setOmimED((new OMIMEDParser()).parse(reader));
+                    }
+                    if (isAV(line)) {
+                        entry.setOmimAV((new OMIMAVParser()).parse(reader));
+                    }
+                    if (isSA(line)) {
+                        entry.setOmimSA((new OMIMSAParser()).parse(reader));
+                    }
+                    if (isCN(line)) {
+                        entry.setOmimCN((new OMIMCNParser()).parse(reader));
+                    }
                 }
             }
         } catch (IOException ex) {
