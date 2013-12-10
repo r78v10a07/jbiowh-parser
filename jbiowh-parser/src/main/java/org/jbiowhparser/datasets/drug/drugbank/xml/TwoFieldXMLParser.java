@@ -10,9 +10,9 @@ import org.xml.sax.Attributes;
 /**
  * This class is the TwoFieldXMLParser XML parser
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2012-11-08 14:37:19 +0100 (Thu, 08 Nov 2012) $
- * $LastChangedRevision: 322 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2012-11-08 14:37:19 +0100
+ * (Thu, 08 Nov 2012) $ $LastChangedRevision: 322 $
+ *
  * @since Sep 10, 2011
  */
 public class TwoFieldXMLParser {
@@ -77,12 +77,11 @@ public class TwoFieldXMLParser {
 
             Iterator it = values.iterator();
             while (it.hasNext()) {
-                long WID = WIDFactory.getInstance().getWid();
-                WIDFactory.getInstance().increaseWid();
                 String value = (String) it.next();
                 if (value != null) {
                     if (hasWID) {
-                        ParseFiles.getInstance().printOnTSVFile(tablename, WID, "\t");
+                        ParseFiles.getInstance().printOnTSVFile(tablename, WIDFactory.getInstance().getWid(), "\t");
+                        WIDFactory.getInstance().increaseWid();
                     }
                     ParseFiles.getInstance().printOnTSVFile(tablename, drug_WID, "\t");
                     if (attribName == null) {

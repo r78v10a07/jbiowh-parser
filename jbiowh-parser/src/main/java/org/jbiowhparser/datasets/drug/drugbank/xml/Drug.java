@@ -37,9 +37,9 @@ import org.xml.sax.Attributes;
 /**
  * This class is the Drug XMl parser
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2012-11-08 14:37:19 +0100 (Thu, 08 Nov 2012) $
- * $LastChangedRevision: 322 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2012-11-08 14:37:19 +0100
+ * (Thu, 08 Nov 2012) $ $LastChangedRevision: 322 $
+ *
  * @since Sep 9, 2011
  */
 public class Drug {
@@ -208,70 +208,70 @@ public class Drug {
         if (open) {
             if (depth >= this.depth + 1) {
                 if (secondaryAccessionNumbers.isOpen()) {
-                    secondaryAccessionNumbers.endElement(qname, depth, true);
+                    secondaryAccessionNumbers.endElement(qname, depth, false);
                 }
                 if (groups.isOpen()) {
-                    groups.endElement(qname, depth, true);
+                    groups.endElement(qname, depth, false);
                 }
                 if (taxonomy.isOpen()) {
                     taxonomy.endElement(qname, depth);
                 }
                 if (synonyms.isOpen()) {
-                    synonyms.endElement(qname, depth, true);
+                    synonyms.endElement(qname, depth, false);
                 }
                 if (brands.isOpen()) {
-                    brands.endElement(qname, depth, true);
+                    brands.endElement(qname, depth, false);
                 }
                 if (mixtures.isOpen()) {
-                    mixtures.endElement(qname, depth, true);
+                    mixtures.endElement(qname, depth, false);
                 }
                 if (packagers.isOpen()) {
-                    packagers.endElement(qname, depth, true);
+                    packagers.endElement(qname, depth, false);
                 }
                 if (manufacturers.isOpen()) {
-                    manufacturers.endElement(qname, depth, true);
+                    manufacturers.endElement(qname, depth, false);
                 }
                 if (prices.isOpen()) {
-                    prices.endElement(qname, depth, true);
+                    prices.endElement(qname, depth, false);
                 }
                 if (categories.isOpen()) {
                     categories.endElement(qname, depth, false);
                 }
                 if (affectedOrganisms.isOpen()) {
-                    affectedOrganisms.endElement(qname, depth, true);
+                    affectedOrganisms.endElement(qname, depth, false);
                 }
                 if (dosages.isOpen()) {
-                    dosages.endElement(qname, depth, true);
+                    dosages.endElement(qname, depth, false);
                 }
                 if (atcCodes.isOpen()) {
-                    atcCodes.endElement(qname, depth, true);
+                    atcCodes.endElement(qname, depth, false);
                 }
                 if (ahfsCodes.isOpen()) {
-                    ahfsCodes.endElement(qname, depth, true);
+                    ahfsCodes.endElement(qname, depth, false);
                 }
                 if (patents.isOpen()) {
                     patents.endElement(qname, depth, false);
                 }
                 if (foodInteractions.isOpen()) {
-                    foodInteractions.endElement(qname, depth, true);
+                    foodInteractions.endElement(qname, depth, false);
                 }
                 if (drugInteractions.isOpen()) {
                     drugInteractions.endElement(qname, depth, false);
                 }
                 if (proteinSequences.isOpen()) {
-                    proteinSequences.endElement(qname, depth, true);
+                    proteinSequences.endElement(qname, depth, false);
                 }
                 if (calculated.isOpen()) {
-                    calculated.endElement(qname, depth, true);
+                    calculated.endElement(qname, depth, false);
                 }
                 if (experimental.isOpen()) {
-                    experimental.endElement(qname, depth, true);
+                    experimental.endElement(qname, depth, false);
                 }
                 if (externalIdentifiers.isOpen()) {
-                    externalIdentifiers.endElement(qname, depth, true);
+                    externalIdentifiers.endElement(qname, depth, false);
                 }
                 if (externalLinks.isOpen()) {
-                    externalLinks.endElement(qname, depth, true);
+                    externalLinks.endElement(qname, depth, false);
                 }
                 if (targets.isOpen()) {
                     targets.endElement(qname, depth);
@@ -290,24 +290,81 @@ public class Drug {
 
         if (qname.equals(DrugTags.getInstance().DRUG) && depth == this.depth) {
             open = false;
+            String tmp;
 
             ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, WID, "\t");
             ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, id, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, name, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, description, "\t");
+            tmp = null;
+            if (name != null) {
+                tmp = name.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (description != null) {
+                tmp = description.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
             ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, casNumber, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, synthesisReference, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, indication, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, pharmacology, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, mechanismOfAction, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, toxicity, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, biotransformation, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, absorption, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, halfLife, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, proteinBinding, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, routeOfElimination, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, volumeOfDistribution, "\t");
-            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, clearance, "\t");
+            tmp = null;
+            if (synthesisReference != null) {
+                tmp = synthesisReference.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (indication != null) {
+                tmp = indication.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (pharmacology != null) {
+                tmp = pharmacology.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (mechanismOfAction != null) {
+                tmp = mechanismOfAction.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (toxicity != null) {
+                tmp = toxicity.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (biotransformation != null) {
+                tmp = biotransformation.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (absorption != null) {
+                tmp = absorption.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (halfLife != null) {
+                tmp = halfLife.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (proteinBinding != null) {
+                tmp = proteinBinding.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (routeOfElimination != null) {
+                tmp = routeOfElimination.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (volumeOfDistribution != null) {
+                tmp = volumeOfDistribution.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
+            tmp = null;
+            if (clearance != null) {
+                tmp = clearance.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
+            }
+            ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, tmp, "\t");
             ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, type, "\t");
             ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, version, "\t");
             ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANK, updated.substring(0, 19), "\t");
