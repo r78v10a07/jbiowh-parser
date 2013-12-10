@@ -2,7 +2,6 @@ package org.jbiowhparser.datasets.drug.drugbank.xml;
 
 import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhparser.datasets.drug.drugbank.xml.tags.TaxonomyTags;
-import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.drug.drugbank.DrugBankTables;
 import org.xml.sax.Attributes;
 
@@ -44,11 +43,9 @@ public class Taxonomy extends TaxonomyTags {
             if (depth == this.depth + 2) {
                 if (qname.equals(SUBSTRUCTURE)) {
                     if (substructure.substructure != null) {
-                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTAXONOMYSUBSTRUCTURES, WIDFactory.getInstance().getWid(), "\t");
                         ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTAXONOMYSUBSTRUCTURES, drug_WID, "\t");
                         ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTAXONOMYSUBSTRUCTURES, substructure.substructure, "\t");
                         ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTAXONOMYSUBSTRUCTURES, substructure.classValue, "\n");
-                        WIDFactory.getInstance().increaseWid();
                     }
                     substructure = null;
                 }
@@ -58,10 +55,8 @@ public class Taxonomy extends TaxonomyTags {
 
                 if (kingdom != null) {
                     if (!kingdom.isEmpty()) {
-                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTAXONOMY, WIDFactory.getInstance().getWid(), "\t");
                         ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTAXONOMY, drug_WID, "\t");
                         ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTAXONOMY, kingdom, "\n");
-                        WIDFactory.getInstance().increaseWid();
                     }
                 }
             }

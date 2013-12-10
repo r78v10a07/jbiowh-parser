@@ -106,7 +106,7 @@ public class DrugBankParser extends ParserBasic implements ParseFactory {
 
         whdbmsFactory.executeUpdate("insert into "
                 + DrugBankTables.DRUGBANK_HAS_DRUGBANKPATENTS
-                + " (DrugBank_WID,DrugBankPatents_WID) select st.DrugBank_WID,s.WID from "
+                + " (DrugBank_WID,DrugBankPatent_WID) select st.DrugBank_WID,s.WID from "
                 + DrugBankTables.getInstance().DRUGBANKPATENTSTEMP
                 + " st inner join "
                 + DrugBankTables.getInstance().DRUGBANKPATENTS
@@ -131,7 +131,7 @@ public class DrugBankParser extends ParserBasic implements ParseFactory {
 
         whdbmsFactory.executeUpdate("insert into "
                 + DrugBankTables.DRUGBANK_HAS_DRUGBANKCATEGORIES
-                + " (DrugBank_WID,DrugBankCategories_WID) select st.DrugBank_WID,s.WID from "
+                + " (DrugBank_WID,DrugBankCategory_WID) select st.DrugBank_WID,s.WID from "
                 + DrugBankTables.getInstance().DRUGBANKCATEGORIESTEMP
                 + " st inner join "
                 + DrugBankTables.getInstance().DRUGBANKCATEGORIES
