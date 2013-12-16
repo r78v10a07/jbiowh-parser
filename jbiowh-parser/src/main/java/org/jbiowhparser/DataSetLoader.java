@@ -23,6 +23,7 @@ import org.jbiowhparser.datasets.pathway.kegg.KEGGParser;
 import org.jbiowhparser.datasets.ppi.MIF25Parser;
 import org.jbiowhparser.datasets.protclust.UniRefParser;
 import org.jbiowhparser.datasets.protein.ProteinParser;
+import org.jbiowhparser.datasets.protgroup.pirsf.PirsfParser;
 import org.jbiowhparser.datasets.taxonomy.TaxonomyParser;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.utils.entitymanager.JBioWHPersistence;
@@ -114,6 +115,11 @@ public class DataSetLoader extends AbstractDefaultTool {
                 DataSetPersistence.getInstance().getDataset().setApplication("GeneBankLoader");
                 DataSetPersistence.getInstance().getDataset().setApplicationVersion("1.0");
                 parser = new GeneBankUpdateParser();
+                break;
+            case "PIRSF":
+                DataSetPersistence.getInstance().getDataset().setApplication("PIRSFLoader");
+                DataSetPersistence.getInstance().getDataset().setApplicationVersion("1.0");
+                parser = new PirsfParser();
                 break;
         }
 
