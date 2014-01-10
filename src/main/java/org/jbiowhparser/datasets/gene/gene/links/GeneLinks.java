@@ -6,14 +6,15 @@ import org.jbiowhparser.datasets.gene.genbank.links.GeneBankGeneLink;
 import org.jbiowhparser.datasets.gene.genome.links.GeneGenePTTLink;
 import org.jbiowhparser.datasets.pathway.kegg.links.KEGGPathwayGeneInfoLink;
 import org.jbiowhparser.datasets.protein.links.ProteinGeneLink;
+import org.jbiowhparser.datasets.protgroup.cog.links.COGGeneInfoLink;
 import org.jbiowhpersistence.datasets.gene.genebank.GeneBankTables;
 
 /**
  * This Class create all Gene external relationship tables
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2013-05-29 11:24:54 +0200 (Wed, 29 May 2013) $
- * $LastChangedRevision: 591 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-05-29 11:24:54 +0200
+ * (Wed, 29 May 2013) $ $LastChangedRevision: 591 $
+ *
  * @since Aug 6, 2011
  */
 public class GeneLinks {
@@ -41,7 +42,7 @@ public class GeneLinks {
      * @throws SQLException
      */
     public void runLink() throws SQLException {
-        
+
         /*
          * Create the Gene-GenePTT realtionship table
          */
@@ -71,11 +72,16 @@ public class GeneLinks {
          * Create the GeneInfo-OMIM relationship table
          */
         GeneOMIMLink.getInstance().runLink();
-        
+
         /*
          * Create the GeneBank CDS-Gene realtionship table
          */
         JBioWHDBMS.getInstance().getWhdbmsFactory().executeUpdate("TRUNCATE TABLE " + GeneBankTables.GENEBANKCDS_HAS_GENEINFO);
         GeneBankGeneLink.getInstance().runLink();
+
+        /*
+         * Create the COG-GeneInfo table
+         */
+        COGGeneInfoLink.getInstance().runLink();
     }
 }

@@ -10,9 +10,9 @@ import org.jbiowhpersistence.datasets.protein.ProteinTables;
 /**
  * This Class create the Protein_has_KEGGEnzyme relationship table
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2013-03-19 09:38:47 +0100 (Tue, 19 Mar 2013) $
- * $LastChangedRevision: 396 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100
+ * (Tue, 19 Mar 2013) $ $LastChangedRevision: 396 $
+ *
  * @since May 18, 2012
  */
 public class ProteinKEGGEnzymeLink {
@@ -45,6 +45,7 @@ public class ProteinKEGGEnzymeLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + ProteinTables.PROTEIN_HAS_KEGGENZYME);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.PROTEIN_HAS_KEGGENZYME);
+        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_KEGGENZYME, false);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_KEGGENZYME
@@ -54,5 +55,7 @@ public class ProteinKEGGEnzymeLink {
                 + " p inner join "
                 + KEGGTables.getInstance().KEGGENZYME
                 + " k on k.Entry = p.Id");
+
+        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_KEGGENZYME, true);
     }
 }

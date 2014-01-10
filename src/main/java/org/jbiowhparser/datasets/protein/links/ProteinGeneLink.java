@@ -10,9 +10,9 @@ import org.jbiowhpersistence.datasets.protein.ProteinTables;
 /**
  * This Class create the Protein_has_Gene relationship table
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2013-05-29 11:24:54 +0200 (Wed, 29 May 2013) $
- * $LastChangedRevision: 591 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-05-29 11:24:54 +0200
+ * (Wed, 29 May 2013) $ $LastChangedRevision: 591 $
+ *
  * @since Aug 6, 2011
  */
 public class ProteinGeneLink {
@@ -45,6 +45,7 @@ public class ProteinGeneLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + ProteinTables.PROTEIN_HAS_GENEINFO);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.PROTEIN_HAS_GENEINFO);
+        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_GENEINFO, false);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_GENEINFO
@@ -68,5 +69,7 @@ public class ProteinGeneLink {
                 + " gp on gp.ProteinAccession = a.ProteinAccession inner join "
                 + ProteinTables.getInstance().PROTEINACCESSIONNUMBER
                 + " pa on pa.AccessionNumber = gp.UniProtKBProteinAccession)");
+
+        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_GENEINFO, true);
     }
 }

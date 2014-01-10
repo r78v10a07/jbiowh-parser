@@ -23,6 +23,9 @@ import org.jbiowhparser.datasets.pathway.kegg.KEGGParser;
 import org.jbiowhparser.datasets.ppi.MIF25Parser;
 import org.jbiowhparser.datasets.protclust.UniRefParser;
 import org.jbiowhparser.datasets.protein.ProteinParser;
+import org.jbiowhparser.datasets.protgroup.cog.COGParser;
+import org.jbiowhparser.datasets.protgroup.cog.EggNOGParser;
+import org.jbiowhparser.datasets.protgroup.orthoxml.OrthoXMLParser;
 import org.jbiowhparser.datasets.protgroup.pirsf.PirsfParser;
 import org.jbiowhparser.datasets.taxonomy.TaxonomyParser;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
@@ -120,6 +123,21 @@ public class DataSetLoader extends AbstractDefaultTool {
                 DataSetPersistence.getInstance().getDataset().setApplication("PIRSFLoader");
                 DataSetPersistence.getInstance().getDataset().setApplicationVersion("1.0");
                 parser = new PirsfParser();
+                break;
+            case "COG":
+                DataSetPersistence.getInstance().getDataset().setApplication("COGLoader");
+                DataSetPersistence.getInstance().getDataset().setApplicationVersion("1.0");
+                parser = new COGParser();
+                break;
+            case "EggNOG":
+                DataSetPersistence.getInstance().getDataset().setApplication("EggNOGLoader");
+                DataSetPersistence.getInstance().getDataset().setApplicationVersion("1.0");
+                parser = new EggNOGParser();
+                break;
+            case "OrthoXML":
+                DataSetPersistence.getInstance().getDataset().setApplication("OrthoXMLLoader");
+                DataSetPersistence.getInstance().getDataset().setApplicationVersion("1.0");
+                parser = new OrthoXMLParser();
                 break;
         }
 

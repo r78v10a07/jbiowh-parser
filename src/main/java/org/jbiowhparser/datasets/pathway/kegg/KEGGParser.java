@@ -102,7 +102,7 @@ public class KEGGParser extends ParserBasic implements ParseFactory {
                             for (File file : files) {
                                 try {
                                     VerbLogger.getInstance().log(this.getClass(), "Parsing KGML file: " + file);
-                                    JAXBContext jc = JAXBContext.newInstance("org.jbiowhparser.datasets.protclust.xml");
+                                    JAXBContext jc = JAXBContext.newInstance("org.jbiowhparser.datasets.pathway.kegg.kgml.xml");
                                     Unmarshaller unmarshaller = jc.createUnmarshaller();
 
                                     Pathway pathway = (Pathway) unmarshaller.unmarshal(file);

@@ -5,12 +5,14 @@ import org.jbiowhparser.datasets.domain.pfam.links.PFamTaxonomyLink;
 import org.jbiowhparser.datasets.gene.genome.links.GenePTTTaxonomyLink;
 import org.jbiowhparser.datasets.pathway.kegg.links.KEGGPathwayTaxonomyLink;
 import org.jbiowhparser.datasets.protein.links.ProteinTaxonomyLink;
+import org.jbiowhparser.datasets.protgroup.cog.links.COGTaxonomyLink;
 
 /**
  * This Class create all Taxonomy external relationship tables
  *
  * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2012-10-03 22:11:05 +0200
  * (Wed, 03 Oct 2012) $ $LastChangedRevision: 591 $
+ *
  * @since Aug 6, 2011
  */
 public class TaxonomyLinks {
@@ -38,7 +40,7 @@ public class TaxonomyLinks {
      * @throws SQLException
      */
     public void runLink() throws SQLException {
-        
+
         /*
          * Create the GenePTT-Taxonomy realtionship table
          */
@@ -59,5 +61,10 @@ public class TaxonomyLinks {
          * Create the PFam-Taxonomy realtionship table
          */
         PFamTaxonomyLink.getInstance().runLink();
+
+        /*
+         * Create the COG-Taxonomy realtion table
+         */
+        COGTaxonomyLink.getInstance().runLink();
     }
 }

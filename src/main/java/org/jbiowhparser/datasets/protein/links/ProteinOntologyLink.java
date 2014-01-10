@@ -10,9 +10,9 @@ import org.jbiowhpersistence.datasets.protein.ProteinTables;
 /**
  * This Class create the Protein_has_Ontology relationship table
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2013-03-19 09:38:47 +0100 (Tue, 19 Mar 2013) $
- * $LastChangedRevision: 396 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100
+ * (Tue, 19 Mar 2013) $ $LastChangedRevision: 396 $
+ *
  * @since Aug 6, 2011
  */
 public class ProteinOntologyLink {
@@ -45,6 +45,7 @@ public class ProteinOntologyLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + ProteinTables.PROTEIN_HAS_ONTOLOGY);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.PROTEIN_HAS_ONTOLOGY);
+        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_ONTOLOGY, false);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_ONTOLOGY
@@ -54,5 +55,7 @@ public class ProteinOntologyLink {
                 + " p inner join "
                 + OntologyTables.getInstance().ONTOLOGY
                 + " o on o.Id = p.Id");
+
+        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_ONTOLOGY, true);
     }
 }

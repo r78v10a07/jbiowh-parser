@@ -6,6 +6,7 @@ import org.jbiowhparser.datasets.drug.drugbank.links.DrugBankProteinLink;
 import org.jbiowhparser.datasets.pathway.kegg.links.KEGGPathwayProteinLink;
 import org.jbiowhparser.datasets.ppi.links.MIF25ProteinLink;
 import org.jbiowhparser.datasets.protclust.links.UniRefProteinLink;
+import org.jbiowhparser.datasets.protgroup.cog.links.COGProteinLink;
 import org.jbiowhparser.datasets.protgroup.pirsf.links.PirsfProteinLink;
 
 /**
@@ -79,5 +80,10 @@ public class ProteinLinks {
          * Create the PIRSF-Protein realtion table
          */
         PirsfProteinLink.getInstance().runLink();
+
+        /*
+         * Create the COG-Protein table
+         */
+        COGProteinLink.getInstance().runLink();
     }
 }
