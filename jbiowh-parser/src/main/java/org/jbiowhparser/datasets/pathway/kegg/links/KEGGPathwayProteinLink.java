@@ -10,9 +10,9 @@ import org.jbiowhpersistence.datasets.protein.ProteinTables;
 /**
  * This Class create the KEGGPathway_has_Protein relationship table
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2013-03-19 09:38:47 +0100 (Tue, 19 Mar 2013) $
- * $LastChangedRevision: 396 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100
+ * (Tue, 19 Mar 2013) $ $LastChangedRevision: 396 $
+ *
  * @since Jul 5, 2012
  */
 public class KEGGPathwayProteinLink {
@@ -45,6 +45,7 @@ public class KEGGPathwayProteinLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + KEGGTables.KEGGPATHWAY_HAS_PROTEN);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + KEGGTables.KEGGPATHWAY_HAS_PROTEN);
+        whdbmsFactory.indexManagement(KEGGTables.KEGGPATHWAY_HAS_PROTEN, false);
 
         whdbmsFactory.executeUpdate("insert into "
                 + KEGGTables.KEGGPATHWAY_HAS_PROTEN
@@ -55,5 +56,7 @@ public class KEGGPathwayProteinLink {
                 + KEGGTables.KEGGENZYME_HAS_KEGGPATHWAY
                 + " kp on kp.KEGGEnzyme_WID = pe.KEGGEnzyme_WID "
                 + " group by kp.KEGGPathway_WID,pe.Protein_WID");
+
+        whdbmsFactory.indexManagement(KEGGTables.KEGGPATHWAY_HAS_PROTEN, true);
     }
 }

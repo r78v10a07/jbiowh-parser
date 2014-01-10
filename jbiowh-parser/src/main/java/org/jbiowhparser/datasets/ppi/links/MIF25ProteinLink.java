@@ -9,9 +9,9 @@ import org.jbiowhpersistence.datasets.protein.ProteinTables;
 /**
  * This Class create the MIFInteraction_has_Protein relationship table
  *
- * $Author: r78v10a07@gmail.com $
- * $LastChangedDate: 2012-11-08 14:37:19 +0100 (Thu, 08 Nov 2012) $
- * $LastChangedRevision: 322 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2012-11-08 14:37:19 +0100
+ * (Thu, 08 Nov 2012) $ $LastChangedRevision: 322 $
+ *
  * @since Aug 20, 2011
  */
 public class MIF25ProteinLink {
@@ -44,6 +44,9 @@ public class MIF25ProteinLink {
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + MIF25Tables.MIFINTERACTION_HAS_PROTEIN);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + MIF25Tables.getInstance().MIFINTERACTIONCOUNT);
+        whdbmsFactory.indexManagement(MIF25Tables.MIFINTERACTION_HAS_PROTEIN, false);
+        whdbmsFactory.indexManagement(MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP, false);
+        whdbmsFactory.indexManagement(MIF25Tables.getInstance().MIFINTERACTIONCOUNT, false);
 
         whdbmsFactory.executeUpdate("insert into "
                 + MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP
@@ -62,12 +65,16 @@ public class MIF25ProteinLink {
                 + " pa on pa.AccessionNumber = u.Id "
                 + " where u.RefType = 'identity')");
 
+        whdbmsFactory.indexManagement(MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP, true);
+
         whdbmsFactory.executeUpdate("insert into "
                 + MIF25Tables.MIFINTERACTION_HAS_PROTEIN
                 + " (MIFEntryInteraction_WID,Protein_WID)"
                 + " select MIFEntryInteraction_WID,Protein_WID from "
                 + MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP
                 + " group by MIFEntryInteraction_WID,Protein_WID");
+
+        whdbmsFactory.indexManagement(MIF25Tables.MIFINTERACTION_HAS_PROTEIN, true);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP);
 
@@ -77,5 +84,7 @@ public class MIF25ProteinLink {
                 + " select MIFEntryInteraction_WID,count(MIFEntryInteraction_WID) from "
                 + MIF25Tables.MIFINTERACTION_HAS_PROTEIN
                 + " group by MIFEntryInteraction_WID");
+
+        whdbmsFactory.indexManagement(MIF25Tables.getInstance().MIFINTERACTIONCOUNT, true);
     }
 }

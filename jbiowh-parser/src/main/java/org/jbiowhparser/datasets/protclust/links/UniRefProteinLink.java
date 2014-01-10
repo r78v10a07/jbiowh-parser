@@ -11,6 +11,7 @@ import org.jbiowhpersistence.datasets.protein.ProteinTables;
  *
  * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-20 10:29:19 +0100
  * (Wed, 20 Mar 2013) $ $LastChangedRevision: 515 $
+ *
  * @since Aug 19, 2011
  */
 public class UniRefProteinLink {
@@ -42,10 +43,12 @@ public class UniRefProteinLink {
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.UNIREFENTRY_HAS_PROTEIN);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.UNIREFMEMBER);
-
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.getInstance().UNIREFMEMBERTEMP);
-
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.getInstance().UNIREFMEMBERTEMP1);
+        whdbmsFactory.indexManagement(UniRefTables.UNIREFENTRY_HAS_PROTEIN, false);
+        whdbmsFactory.indexManagement(UniRefTables.UNIREFMEMBER, false);
+        whdbmsFactory.indexManagement(UniRefTables.getInstance().UNIREFMEMBERTEMP, false);
+        whdbmsFactory.indexManagement(UniRefTables.getInstance().UNIREFMEMBERTEMP1, false);
 
         whdbmsFactory.executeUpdate("insert into "
                 + UniRefTables.getInstance().UNIREFMEMBERTEMP1
@@ -53,6 +56,8 @@ public class UniRefProteinLink {
                 + " select * from "
                 + UniRefTables.getInstance().UNIREFMEMBERTEMP2
                 + " group by UniRefEntry_WID,Id");
+
+        whdbmsFactory.indexManagement(UniRefTables.getInstance().UNIREFMEMBERTEMP1, true);
 
         whdbmsFactory.executeUpdate("insert into "
                 + UniRefTables.getInstance().UNIREFMEMBERTEMP
@@ -81,12 +86,16 @@ public class UniRefProteinLink {
                 + " n on r.WID = n.WID where n.WID is null"
                 + " group by r.UniRefEntry_WID,Id");
 
+        whdbmsFactory.indexManagement(UniRefTables.getInstance().UNIREFMEMBERTEMP, true);
+
         whdbmsFactory.executeUpdate("insert IGNORE into "
                 + UniRefTables.UNIREFMEMBER
                 + " (WID,UniRefEntry_WID,Protein_WID,TaxId,Type,Id,IsRepresentative) "
                 + " select * from "
                 + UniRefTables.getInstance().UNIREFMEMBERTEMP
                 + " group by UniRefEntry_WID,Protein_WID");
+
+        whdbmsFactory.indexManagement(UniRefTables.UNIREFMEMBER, true);
 
         whdbmsFactory.executeUpdate("insert IGNORE into "
                 + UniRefTables.UNIREFENTRY_HAS_PROTEIN
@@ -96,6 +105,8 @@ public class UniRefProteinLink {
                 + " e inner join "
                 + UniRefTables.UNIREFMEMBER
                 + " m on m.UniRefEntry_WID = e.WID");
+
+        whdbmsFactory.indexManagement(UniRefTables.UNIREFENTRY_HAS_PROTEIN, true);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.getInstance().UNIREFMEMBERTEMP);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.getInstance().UNIREFMEMBERTEMP1);

@@ -10,9 +10,8 @@ import org.jbiowhpersistence.datasets.protein.ProteinTables;
 /**
  * This Class populates the Protein_has_GenePTT relationship table
  *
- * $Author$
- * $LastChangedDate$
- * $LastChangedRevision$
+ * $Author$ $LastChangedDate$ $LastChangedRevision$
+ *
  * @since Mar 13, 2013
  */
 public class ProteinGenePTTLink {
@@ -33,7 +32,7 @@ public class ProteinGenePTTLink {
         }
         return singleton;
     }
-    
+
     /**
      * Create the Protein-Gene relationship table
      *
@@ -45,6 +44,7 @@ public class ProteinGenePTTLink {
         VerbLogger.getInstance().log(this.getClass(), "Populating table: " + ProteinTables.PROTEIN_HAS_GENEPTT);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.PROTEIN_HAS_GENEPTT);
+        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_GENEPTT, false);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_GENEPTT
@@ -55,5 +55,6 @@ public class ProteinGenePTTLink {
                 + ProteinTables.PROTEIN_HAS_GENEINFO
                 + " pg on pg.GeneInfo_WID = gptt.GeneInfo_WID"
                 + " group by pg.Protein_WID,gptt.GenePTT_ProteinGi");
+        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_GENEPTT, true);
     }
- }
+}

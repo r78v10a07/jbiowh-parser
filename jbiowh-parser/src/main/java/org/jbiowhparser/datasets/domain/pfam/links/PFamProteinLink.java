@@ -7,13 +7,12 @@ import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhpersistence.datasets.domain.pfam.PFamTables;
 import org.jbiowhpersistence.datasets.protein.ProteinTables;
 
-
 /**
  * This Class is the PFam-Protein external link
  *
- * $Author: r78v10a07@gmail.com $ 
- * $LastChangedDate: 2013-03-19 09:38:47 +0100 (Tue, 19 Mar 2013) $ 
- * $LastChangedRevision: 396 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-03-19 09:38:47 +0100
+ * (Tue, 19 Mar 2013) $ $LastChangedRevision: 396 $
+ *
  * @since Nov 19, 2012
  */
 public class PFamProteinLink {
@@ -46,6 +45,7 @@ public class PFamProteinLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + PFamTables.PFAMSEQ_HAS_PROTEIN);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + PFamTables.PFAMSEQ_HAS_PROTEIN);
+        whdbmsFactory.indexManagement(PFamTables.PFAMSEQ_HAS_PROTEIN, false);
 
         whdbmsFactory.executeUpdate("insert into "
                 + PFamTables.PFAMSEQ_HAS_PROTEIN
@@ -55,18 +55,20 @@ public class PFamProteinLink {
                 + " u inner join "
                 + ProteinTables.getInstance().PROTEINNAME
                 + "  n on n.Name = u.UniProt_Id ");
-        
+
+        whdbmsFactory.indexManagement(PFamTables.PFAMSEQ_HAS_PROTEIN, true);
+
         whdbmsFactory.executeUpdate("UPDATE "
                 + PFamTables.PFAMAREGFULLSIGNIFICANT
                 + " s INNER JOIN "
                 + PFamTables.PFAMSEQ_HAS_PROTEIN
                 + "  p on s.auto_pfamseq = p.auto_pfamseq SET s.Protein_WID = p.Protein_WID");
-        
+
         whdbmsFactory.executeUpdate("UPDATE "
                 + PFamTables.PFAMAREGFULLINSIGNIFICANT
                 + " s INNER JOIN "
                 + PFamTables.PFAMSEQ_HAS_PROTEIN
                 + "  p on s.auto_pfamseq = p.auto_pfamseq SET s.Protein_WID = p.Protein_WID");
-        
+
     }
- }
+}

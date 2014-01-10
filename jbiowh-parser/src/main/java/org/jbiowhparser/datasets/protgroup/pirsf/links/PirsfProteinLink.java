@@ -44,6 +44,7 @@ public class PirsfProteinLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + PirsfTables.PIRSF_HAS_PROTEIN);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + PirsfTables.PIRSF_HAS_PROTEIN);
+        whdbmsFactory.indexManagement(PirsfTables.PIRSF_HAS_PROTEIN, false);
 
         whdbmsFactory.executeUpdate("insert IGNORE into "
                 + PirsfTables.PIRSF_HAS_PROTEIN
@@ -55,5 +56,7 @@ public class PirsfProteinLink {
                 + " fp on fp.PIRSF_WID = f.WID inner join "
                 + ProteinTables.getInstance().PROTEINACCESSIONNUMBER
                 + " a on a.AccessionNUmber = fp.AccessionNumber");
+
+        whdbmsFactory.indexManagement(PirsfTables.PIRSF_HAS_PROTEIN, true);
     }
 }

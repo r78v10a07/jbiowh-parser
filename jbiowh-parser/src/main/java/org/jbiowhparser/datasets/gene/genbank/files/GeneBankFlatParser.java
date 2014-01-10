@@ -31,6 +31,8 @@ import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBank;
 import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankAccession;
 import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankCDS;
 import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankCDSDBXref;
+import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankCDSLocation;
+import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankCOG;
 import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankFeatures;
 
 /**
@@ -62,6 +64,7 @@ public class GeneBankFlatParser {
     private final String ORGANISM = "ORGANISM";
     private final String LOCUS_TAG = "locus_tag";
     private final String TRANSLATION = "translation";
+    public final String NOTE = "note";
 
     /**
      * This method explore the GeneBank directory and insert into the JBioWH
@@ -191,11 +194,26 @@ public class GeneBankFlatParser {
                         ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSTEMP, c.getWid(), "\t");
                         ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSTEMP, c.getProteinGi(), "\n");
 
+                        if (c.getGeneBankCDSLocation() != null) {
+                            for (GeneBankCDSLocation r : c.getGeneBankCDSLocation()) {
+                                ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSLOCATION, c.getWid(), "\t");
+                                ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSLOCATION, r.getpFrom(), "\t");
+                                ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSLOCATION, r.getpTo(), "\n");
+                            }
+                        }
+
                         if (c.getGeneBankCDSDBXrefs() != null) {
                             for (GeneBankCDSDBXref r : c.getGeneBankCDSDBXrefs()) {
                                 ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSDBXREF, c.getWid(), "\t");
                                 ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSDBXREF, r.getdBXref(), "\t");
                                 ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSDBXREF, r.getdBIdent(), "\n");
+                            }
+                        }
+
+                        if (c.getGeneBankCOG() != null) {
+                            for (GeneBankCOG cog : c.getGeneBankCOG()) {
+                                ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCOG, c.getWid(), "\t");
+                                ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCOG, cog.getCogId(), "\n");
                             }
                         }
                     }
@@ -206,6 +224,7 @@ public class GeneBankFlatParser {
             VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
             VerbLogger.getInstance().log(this.getClass(), "Error: " + ex.toString());
             VerbLogger.getInstance().setLevel(VerbLogger.getInstance().getInitialLevel());
+            ex.printStackTrace(System.out);
             System.exit(1);
         }
 
@@ -276,7 +295,6 @@ public class GeneBankFlatParser {
                     } else {
                         throw new IOException("Bad VERSION line: " + line);
                     }
-
                 }
                 if (line.startsWith(SOURCE.toUpperCase())) {
                     StringBuilder lineage = new StringBuilder(line.replace(SOURCE.toUpperCase(), "").trim());
@@ -356,10 +374,12 @@ public class GeneBankFlatParser {
     private void getFeatures(BufferedReader reader, GeneBank geneBank) throws Exception {
         String line;
         HashMap<String, Object> map;
+        Pattern p1 = Pattern.compile("(COG\\d{4})");
+        Matcher m1 = p1.matcher("");
 
         reader.mark(1000000);
         while ((line = reader.readLine()) != null) {
-            if (line.matches("^\\w.+")) {
+            if (line.matches("^\\w+.+")) {
                 reader.reset();
                 break;
             }
@@ -368,8 +388,13 @@ public class GeneBankFlatParser {
                     if (geneBank.getLocation() == null || geneBank.getLocation().isEmpty()) {
                         geneBank.setLocation(line.replace(SOURCE, "").trim());
                         map = getQualifier(reader);
-                        if (map.containsKey(TAXON)) {
-                            geneBank.setTaxId(Integer.parseInt((String) map.get(TAXON)));
+                        if (map.containsKey(DB_XREF)) {
+                            for (String db : (Set<String>) map.get(DB_XREF)) {
+                                if (db.contains(TAXON + ":")) {
+                                    geneBank.setTaxId(Integer.parseInt(db.substring(db.indexOf(":") + 1)));
+                                    break;
+                                }
+                            }
                         }
                     }
                 } else {
@@ -397,12 +422,14 @@ public class GeneBankFlatParser {
                         cds.setGeneBank(null);
                         cds.setGeneBankWID(geneBank.getWid());
                         cds.setGeneInfo(new HashSet<GeneInfo>());
-                        cds.setGeneBankCDSDBXrefs(new ArrayList<GeneBankCDSDBXref>());
+                        cds.setGeneBankCDSDBXrefs(new HashSet<GeneBankCDSDBXref>());
+                        cds.setGeneBankCOG(new HashSet<GeneBankCOG>());
                         cds.setGenePTT(null);
                         cds.setProteinGi(-1);
                         cds.setGene(null);
                         cds.setLocusTag(null);
                         cds.setLocation(location);
+                        cds.setGeneBankCDSLocation(parseLocation(location));
                         if (map.containsKey(DB_XREF)) {
                             for (String db : (Set<String>) map.get(DB_XREF)) {
                                 if (db.contains(GI + ":")) {
@@ -430,8 +457,15 @@ public class GeneBankFlatParser {
                         }
                         if (map.containsKey(TRANSLATION)) {
                             cds.setTranslation(true);
-                        }else{
+                        } else {
                             cds.setTranslation(false);
+                        }
+                        if (map.containsKey(NOTE)) {
+                            m1.reset((String) map.get(NOTE));
+                            while (m1.find()) {
+                                GeneBankCOG cog = new GeneBankCOG(m1.group(1));
+                                cds.getGeneBankCOG().add(cog);
+                            }
                         }
                         geneBank.getGeneBankCDSs().add(cds);
                     } else {
@@ -460,90 +494,99 @@ public class GeneBankFlatParser {
         }
     }
 
-    private HashMap<String, Object> getQualifier(BufferedReader reader) throws Exception {
-        HashMap<String, Object> map = new HashMap();
-        String line;
-        Pattern p;
-        Matcher m;
+    private HashMap<String, Object> getQualifier(BufferedReader reader) {
 
-        reader.mark(1000000);
-        while ((line = reader.readLine()) != null) {
-            if (line.matches("^ {5}\\w+ .+") || line.matches("^\\w.+")) {
-                reader.reset();
-                break;
-            }
-            if (line.trim().startsWith("/")) {
-                p = Pattern.compile("taxon:(\\d+)");
-                m = p.matcher(line);
-                if (m.find()) {
-                    map.put(TAXON, m.group(1));
-                } else {
-                    p = Pattern.compile("(?:" + DB_XREF + "=\")(\\w.+)(?:\")");
-                    m = p.matcher(line.trim());
-                    if (m.find()) {
-                        if (m.groupCount() == 1) {
-                            if (!map.containsKey(DB_XREF)) {
-                                map.put(DB_XREF, new HashSet<String>());
+        HashMap<String, Object> map = new HashMap();
+        String line = null;
+        String value;
+        Pattern p1 = Pattern.compile("/([a-zA-Z_0-9]+)=*\"*([a-zA-Z_0-9\\.\\(\\)<>\\^,;:\\s\\-\"/]+)*");
+        Matcher m1 = p1.matcher("");
+
+        try {
+            reader.mark(1000000);
+            try {
+                while ((line = reader.readLine()) != null) {
+                    if (!line.matches("\\s{21}.+")) {
+                        reader.reset();
+                        break;
+                    }
+                    if (line.trim().startsWith("/")) {
+                        StringBuilder builder = new StringBuilder(line.trim());
+                        reader.mark(1000000);
+                        while ((line = reader.readLine()) != null) {
+                            if (line.trim().matches("/[a-zA-Z_0-9]+.*")
+                                    || !line.matches("\\s{21}.+")) {
+                                reader.reset();
+                                break;
                             }
-                            ((Set) map.get(DB_XREF)).add(m.group(1));
-                        } else {
-                            throw new IOException("Bad " + DB_XREF + " line: " + line);
+                            builder.append(" ").append(line.trim());
+                            reader.mark(1000000);
                         }
-                    } else {
-                        p = Pattern.compile("(?:" + PRODUCT + "=\")(\\w.+)(?:\")");
-                        m = p.matcher(line.trim());
-                        if (m.find()) {
-                            if (m.groupCount() == 1) {
-                                map.put(PRODUCT, m.group(1));
+                        m1.reset(builder.toString());
+                        m1.find();
+                        value = "";
+                        if (m1.group(2) != null) {
+                            if (m1.group(2).endsWith("\"")) {
+                                value = m1.group(2).substring(0, m1.group(2).length() - 1);
                             } else {
-                                throw new IOException("Bad " + PRODUCT + " line: " + line);
+                                value = m1.group(2);
                             }
-                        } else {
-                            p = Pattern.compile("(?:" + PROTEIN_ID + "=\")(\\w.+)(?:\")");
-                            m = p.matcher(line.trim());
-                            if (m.find()) {
-                                if (m.groupCount() == 1) {
-                                    map.put(PROTEIN_ID, m.group(1));
-                                } else {
-                                    throw new IOException("Bad " + PROTEIN_ID + " line: " + line);
+                        }
+                        switch (m1.group(1)) {
+                            case DB_XREF:
+                                if (!map.containsKey(DB_XREF)) {
+                                    map.put(DB_XREF, new HashSet<String>());
                                 }
-                            } else {
-                                p = Pattern.compile("(?:" + GENE + "=\")(\\w.+)(?:\")");
-                                m = p.matcher(line.trim());
-                                if (m.find()) {
-                                    if (m.groupCount() == 1) {
-                                        map.put(GENE, m.group(1));
-                                    } else {
-                                        throw new IOException("Bad " + GENE + " line: " + line);
-                                    }
-                                } else {
-                                    p = Pattern.compile("(?:" + LOCUS_TAG + "=\")(\\w.+)(?:\")");
-                                    m = p.matcher(line.trim());
-                                    if (m.find()) {
-                                        if (m.groupCount() == 1) {
-                                            map.put(LOCUS_TAG, m.group(1));
-                                        } else {
-                                            throw new IOException("Bad " + LOCUS_TAG + " line: " + line);
-                                        }
-                                    } else {
-                                        p = Pattern.compile("(?:" + TRANSLATION + "=\")(\\w.+)");
-                                        m = p.matcher(line.trim());
-                                        if (m.find()) {
-                                            if (m.groupCount() == 1) {
-                                                map.put(TRANSLATION, 1);
-                                            } else {
-                                                throw new IOException("Bad " + TRANSLATION + " line: " + line);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                                ((Set) map.get(DB_XREF)).add(value);
+                                break;
+                            case TRANSLATION:
+                                map.put(m1.group(1), value.replace(" ", ""));
+                                break;
+                            default:
+                                map.put(m1.group(1), value);
+                                break;
                         }
                     }
+                    reader.mark(1000000);
                 }
+            } catch (IllegalStateException ex) {
+                VerbLogger.getInstance().log(this.getClass(), line);
+                VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                ex.printStackTrace(System.out);
+                System.exit(0);
             }
-            reader.mark(1000000);
+        } catch (IOException ex) {
+            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+            ex.printStackTrace(System.out);
+            System.exit(0);
         }
         return map;
+    }
+
+    private Set<GeneBankCDSLocation> parseLocation(String location) {
+        Set<GeneBankCDSLocation> cdsLocation = new HashSet<>();
+
+        if (location != null) {
+            Pattern p = Pattern.compile("([a-zA-Z_0-9]*.[a-zA-Z_0-9]*:)?(\\d+)[.\\-\\^><]+(\\d+)?");
+            Matcher m = p.matcher(location);
+
+            while (m.find()) {
+                GeneBankCDSLocation loc;
+                Integer from = Integer.valueOf(m.group(2));
+                String to = m.group(3);
+                if (to != null) {
+                    if (Integer.valueOf(to) < from) {
+                        from = Integer.valueOf(to);
+                        to = m.group(2);
+                    }
+                    loc = new GeneBankCDSLocation(from, Integer.valueOf(to));
+                } else {
+                    loc = new GeneBankCDSLocation(from, null);
+                }
+                cdsLocation.add(loc);
+            }
+        }
+
+        return cdsLocation;
     }
 }
