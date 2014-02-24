@@ -45,7 +45,7 @@ public class DrugBankProteinLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + ProteinTables.PROTEIN_HAS_DRUGBANK);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.PROTEIN_HAS_DRUGBANK);
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_DRUGBANK, false);
+        whdbmsFactory.disableKeys(ProteinTables.PROTEIN_HAS_DRUGBANK);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_DRUGBANK
@@ -61,12 +61,12 @@ public class DrugBankProteinLink {
                 + " pa on pa.AccessionNumber = e.Identifier where e.Resource = 'UniProtKB'"
                 + " group by pa.Protein_WID,t.DrugBank_WID");
 
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_DRUGBANK, true);
+        whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_DRUGBANK);
 
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + ProteinTables.PROTEIN_HAS_DRUGBANKASENZYME);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.PROTEIN_HAS_DRUGBANKASENZYME);
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_DRUGBANKASENZYME, false);
+        whdbmsFactory.disableKeys(ProteinTables.PROTEIN_HAS_DRUGBANKASENZYME);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_DRUGBANKASENZYME
@@ -82,12 +82,12 @@ public class DrugBankProteinLink {
                 + " pa on pa.AccessionNumber = e.Identifier where e.Resource = 'UniProtKB'"
                 + " group by pa.Protein_WID,t.DrugBank_WID");
 
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_DRUGBANKASENZYME, true);
+        whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_DRUGBANKASENZYME);
 
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + ProteinTables.PROTEIN_HAS_DRUGBANKASTRANSPORTERS);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.PROTEIN_HAS_DRUGBANKASTRANSPORTERS);
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_DRUGBANKASTRANSPORTERS, false);
+        whdbmsFactory.disableKeys(ProteinTables.PROTEIN_HAS_DRUGBANKASTRANSPORTERS);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_DRUGBANKASTRANSPORTERS
@@ -103,12 +103,12 @@ public class DrugBankProteinLink {
                 + " pa on pa.AccessionNumber = e.Identifier where e.Resource = 'UniProtKB'"
                 + " group by pa.Protein_WID,t.DrugBank_WID");
 
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_DRUGBANKASTRANSPORTERS, true);
+        whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_DRUGBANKASTRANSPORTERS);
 
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + ProteinTables.PROTEIN_HAS_DRUGBANKASCARRIERS);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.PROTEIN_HAS_DRUGBANKASCARRIERS);
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_DRUGBANKASCARRIERS, false);
+        whdbmsFactory.disableKeys(ProteinTables.PROTEIN_HAS_DRUGBANKASCARRIERS);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_DRUGBANKASCARRIERS
@@ -124,6 +124,6 @@ public class DrugBankProteinLink {
                 + " pa on pa.AccessionNumber = e.Identifier where e.Resource = 'UniProtKB'"
                 + " group by pa.Protein_WID,t.DrugBank_WID");
 
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_DRUGBANKASCARRIERS, true);
+        whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_DRUGBANKASCARRIERS);
     }
 }

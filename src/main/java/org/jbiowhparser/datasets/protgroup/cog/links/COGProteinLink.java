@@ -62,5 +62,14 @@ public class COGProteinLink {
                 + " m inner join "
                 + ProteinTables.getInstance().PROTEINDBREFERENCE
                 + "  n on n.Id = m.Id");
+        
+        whdbmsFactory.executeUpdate("INSERT IGNORE INTO "
+                + COGTables.COGORTHOLOGOUSGROUP_HAS_PROTEIN
+                + " (COGOrthologousGroup_WID,Protein_WID) "
+                + " SELECT  c.WID,r.Protein_WID FROM "
+                + ProteinTables.getInstance().PROTEINDBREFERENCE
+                + " r inner join "
+                + COGTables.getInstance().COGFUNCCLASSGROUP
+                + " c on r.Id = c.Id where r.Type = 'eggNOG'");
     }
 }

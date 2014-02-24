@@ -45,7 +45,7 @@ public class PFamProteinLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + PFamTables.PFAMSEQ_HAS_PROTEIN);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + PFamTables.PFAMSEQ_HAS_PROTEIN);
-        whdbmsFactory.indexManagement(PFamTables.PFAMSEQ_HAS_PROTEIN, false);
+        whdbmsFactory.disableKeys(PFamTables.PFAMSEQ_HAS_PROTEIN);
 
         whdbmsFactory.executeUpdate("insert into "
                 + PFamTables.PFAMSEQ_HAS_PROTEIN
@@ -56,7 +56,7 @@ public class PFamProteinLink {
                 + ProteinTables.getInstance().PROTEINNAME
                 + "  n on n.Name = u.UniProt_Id ");
 
-        whdbmsFactory.indexManagement(PFamTables.PFAMSEQ_HAS_PROTEIN, true);
+        whdbmsFactory.enableKeys(PFamTables.PFAMSEQ_HAS_PROTEIN);
 
         whdbmsFactory.executeUpdate("UPDATE "
                 + PFamTables.PFAMAREGFULLSIGNIFICANT

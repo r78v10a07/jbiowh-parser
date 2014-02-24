@@ -45,10 +45,10 @@ public class UniRefProteinLink {
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.UNIREFMEMBER);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.getInstance().UNIREFMEMBERTEMP);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.getInstance().UNIREFMEMBERTEMP1);
-        whdbmsFactory.indexManagement(UniRefTables.UNIREFENTRY_HAS_PROTEIN, false);
-        whdbmsFactory.indexManagement(UniRefTables.UNIREFMEMBER, false);
-        whdbmsFactory.indexManagement(UniRefTables.getInstance().UNIREFMEMBERTEMP, false);
-        whdbmsFactory.indexManagement(UniRefTables.getInstance().UNIREFMEMBERTEMP1, false);
+        whdbmsFactory.disableKeys(UniRefTables.UNIREFENTRY_HAS_PROTEIN);
+        whdbmsFactory.disableKeys(UniRefTables.UNIREFMEMBER);
+        whdbmsFactory.disableKeys(UniRefTables.getInstance().UNIREFMEMBERTEMP);
+        whdbmsFactory.disableKeys(UniRefTables.getInstance().UNIREFMEMBERTEMP1);
 
         whdbmsFactory.executeUpdate("insert into "
                 + UniRefTables.getInstance().UNIREFMEMBERTEMP1
@@ -57,7 +57,7 @@ public class UniRefProteinLink {
                 + UniRefTables.getInstance().UNIREFMEMBERTEMP2
                 + " group by UniRefEntry_WID,Id");
 
-        whdbmsFactory.indexManagement(UniRefTables.getInstance().UNIREFMEMBERTEMP1, true);
+        whdbmsFactory.enableKeys(UniRefTables.getInstance().UNIREFMEMBERTEMP1);
 
         whdbmsFactory.executeUpdate("insert into "
                 + UniRefTables.getInstance().UNIREFMEMBERTEMP
@@ -86,7 +86,7 @@ public class UniRefProteinLink {
                 + " n on r.WID = n.WID where n.WID is null"
                 + " group by r.UniRefEntry_WID,Id");
 
-        whdbmsFactory.indexManagement(UniRefTables.getInstance().UNIREFMEMBERTEMP, true);
+        whdbmsFactory.enableKeys(UniRefTables.getInstance().UNIREFMEMBERTEMP);
 
         whdbmsFactory.executeUpdate("insert IGNORE into "
                 + UniRefTables.UNIREFMEMBER
@@ -95,7 +95,7 @@ public class UniRefProteinLink {
                 + UniRefTables.getInstance().UNIREFMEMBERTEMP
                 + " group by UniRefEntry_WID,Protein_WID");
 
-        whdbmsFactory.indexManagement(UniRefTables.UNIREFMEMBER, true);
+        whdbmsFactory.enableKeys(UniRefTables.UNIREFMEMBER);
 
         whdbmsFactory.executeUpdate("insert IGNORE into "
                 + UniRefTables.UNIREFENTRY_HAS_PROTEIN
@@ -106,7 +106,7 @@ public class UniRefProteinLink {
                 + UniRefTables.UNIREFMEMBER
                 + " m on m.UniRefEntry_WID = e.WID");
 
-        whdbmsFactory.indexManagement(UniRefTables.UNIREFENTRY_HAS_PROTEIN, true);
+        whdbmsFactory.enableKeys(UniRefTables.UNIREFENTRY_HAS_PROTEIN);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.getInstance().UNIREFMEMBERTEMP);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.getInstance().UNIREFMEMBERTEMP1);
