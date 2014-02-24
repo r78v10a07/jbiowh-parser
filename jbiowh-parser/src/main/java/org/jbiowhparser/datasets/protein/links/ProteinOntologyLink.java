@@ -45,7 +45,7 @@ public class ProteinOntologyLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + ProteinTables.PROTEIN_HAS_ONTOLOGY);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.PROTEIN_HAS_ONTOLOGY);
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_ONTOLOGY, false);
+        whdbmsFactory.disableKeys(ProteinTables.PROTEIN_HAS_ONTOLOGY);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_ONTOLOGY
@@ -56,6 +56,6 @@ public class ProteinOntologyLink {
                 + OntologyTables.getInstance().ONTOLOGY
                 + " o on o.Id = p.Id");
 
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_ONTOLOGY, true);
+        whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_ONTOLOGY);
     }
 }

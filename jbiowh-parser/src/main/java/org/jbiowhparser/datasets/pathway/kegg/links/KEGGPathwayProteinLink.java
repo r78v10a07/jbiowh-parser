@@ -45,7 +45,7 @@ public class KEGGPathwayProteinLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + KEGGTables.KEGGPATHWAY_HAS_PROTEN);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + KEGGTables.KEGGPATHWAY_HAS_PROTEN);
-        whdbmsFactory.indexManagement(KEGGTables.KEGGPATHWAY_HAS_PROTEN, false);
+        whdbmsFactory.disableKeys(KEGGTables.KEGGPATHWAY_HAS_PROTEN);
 
         whdbmsFactory.executeUpdate("insert into "
                 + KEGGTables.KEGGPATHWAY_HAS_PROTEN
@@ -57,6 +57,6 @@ public class KEGGPathwayProteinLink {
                 + " kp on kp.KEGGEnzyme_WID = pe.KEGGEnzyme_WID "
                 + " group by kp.KEGGPathway_WID,pe.Protein_WID");
 
-        whdbmsFactory.indexManagement(KEGGTables.KEGGPATHWAY_HAS_PROTEN, true);
+        whdbmsFactory.enableKeys(KEGGTables.KEGGPATHWAY_HAS_PROTEN);
     }
 }

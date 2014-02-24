@@ -97,7 +97,7 @@ public class ProteinParser extends ParserBasic implements ParseFactory {
         whdbmsFactory.loadTSVTables(ProteinTables.getInstance().getTables());
         VerbLogger.getInstance().log(this.getClass(), "Running SQL internal processing");
 
-        whdbmsFactory.indexManagement(ProteinTables.getInstance().PROTEINKEYWORD, false);
+        whdbmsFactory.disableKeys(ProteinTables.getInstance().PROTEINKEYWORD);
         whdbmsFactory.executeUpdate("ALTER TABLE " + ProteinTables.getInstance().PROTEINKEYWORD + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
 
         whdbmsFactory.executeUpdate("insert into "
@@ -107,12 +107,12 @@ public class ProteinParser extends ParserBasic implements ParseFactory {
                 + ProteinTables.getInstance().PROTEINWIDKEYWORDTEMP
                 + " group by Id");
 
-        whdbmsFactory.indexManagement(ProteinTables.getInstance().PROTEINKEYWORD, true);
+        whdbmsFactory.enableKeys(ProteinTables.getInstance().PROTEINKEYWORD);
 
         WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
                 + ProteinTables.getInstance().PROTEINKEYWORD, "WID"));
 
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_PROTEINKEYWORD, false);
+        whdbmsFactory.disableKeys(ProteinTables.PROTEIN_HAS_PROTEINKEYWORD);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_PROTEINKEYWORD
@@ -123,7 +123,7 @@ public class ProteinParser extends ParserBasic implements ParseFactory {
                 + ProteinTables.getInstance().PROTEINKEYWORD
                 + " k on k.Id = p.Id");
 
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_PROTEINKEYWORD, true);
+        whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_PROTEINKEYWORD);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.getInstance().PROTEINWIDKEYWORDTEMP);
 
@@ -142,7 +142,7 @@ public class ProteinParser extends ParserBasic implements ParseFactory {
             ProteinTables.getInstance().PROTEINBIOCYC,
             ProteinTables.getInstance().PROTEINDRUGBANK}) {
 
-            whdbmsFactory.indexManagement(table, false);
+            whdbmsFactory.disableKeys(table);
             whdbmsFactory.executeUpdate("insert into "
                     + table
                     + " (Protein_WID, Id) "
@@ -150,7 +150,7 @@ public class ProteinParser extends ParserBasic implements ParseFactory {
                     + table + "Temp"
                     + " group by Protein_WID, Id");
 
-            whdbmsFactory.indexManagement(table, true);
+            whdbmsFactory.enableKeys(table);
             whdbmsFactory.executeUpdate("TRUNCATE TABLE " + table + "Temp");
         }
 

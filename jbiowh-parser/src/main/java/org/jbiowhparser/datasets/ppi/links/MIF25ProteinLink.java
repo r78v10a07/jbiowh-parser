@@ -44,9 +44,9 @@ public class MIF25ProteinLink {
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + MIF25Tables.MIFINTERACTION_HAS_PROTEIN);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + MIF25Tables.getInstance().MIFINTERACTIONCOUNT);
-        whdbmsFactory.indexManagement(MIF25Tables.MIFINTERACTION_HAS_PROTEIN, false);
-        whdbmsFactory.indexManagement(MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP, false);
-        whdbmsFactory.indexManagement(MIF25Tables.getInstance().MIFINTERACTIONCOUNT, false);
+        whdbmsFactory.disableKeys(MIF25Tables.MIFINTERACTION_HAS_PROTEIN);
+        whdbmsFactory.disableKeys(MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP);
+        whdbmsFactory.disableKeys(MIF25Tables.getInstance().MIFINTERACTIONCOUNT);
 
         whdbmsFactory.executeUpdate("insert into "
                 + MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP
@@ -65,7 +65,7 @@ public class MIF25ProteinLink {
                 + " pa on pa.AccessionNumber = u.Id "
                 + " where u.RefType = 'identity')");
 
-        whdbmsFactory.indexManagement(MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP, true);
+        whdbmsFactory.enableKeys(MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP);
 
         whdbmsFactory.executeUpdate("insert into "
                 + MIF25Tables.MIFINTERACTION_HAS_PROTEIN
@@ -74,7 +74,7 @@ public class MIF25ProteinLink {
                 + MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP
                 + " group by MIFEntryInteraction_WID,Protein_WID");
 
-        whdbmsFactory.indexManagement(MIF25Tables.MIFINTERACTION_HAS_PROTEIN, true);
+        whdbmsFactory.enableKeys(MIF25Tables.MIFINTERACTION_HAS_PROTEIN);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP);
 
@@ -85,6 +85,6 @@ public class MIF25ProteinLink {
                 + MIF25Tables.MIFINTERACTION_HAS_PROTEIN
                 + " group by MIFEntryInteraction_WID");
 
-        whdbmsFactory.indexManagement(MIF25Tables.getInstance().MIFINTERACTIONCOUNT, true);
+        whdbmsFactory.enableKeys(MIF25Tables.getInstance().MIFINTERACTIONCOUNT);
     }
 }

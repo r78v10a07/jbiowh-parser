@@ -45,7 +45,7 @@ public class ProteinKEGGEnzymeLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + ProteinTables.PROTEIN_HAS_KEGGENZYME);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.PROTEIN_HAS_KEGGENZYME);
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_KEGGENZYME, false);
+        whdbmsFactory.disableKeys(ProteinTables.PROTEIN_HAS_KEGGENZYME);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_KEGGENZYME
@@ -56,6 +56,6 @@ public class ProteinKEGGEnzymeLink {
                 + KEGGTables.getInstance().KEGGENZYME
                 + " k on k.Entry = p.Id");
 
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_KEGGENZYME, true);
+        whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_KEGGENZYME);
     }
 }

@@ -25,6 +25,7 @@ import org.jbiowhparser.datasets.protclust.UniRefParser;
 import org.jbiowhparser.datasets.protein.ProteinParser;
 import org.jbiowhparser.datasets.protgroup.cog.COGParser;
 import org.jbiowhparser.datasets.protgroup.cog.EggNOGParser;
+import org.jbiowhparser.datasets.protgroup.ncbiprotclust.NCBIProtClustParser;
 import org.jbiowhparser.datasets.protgroup.orthoxml.OrthoXMLParser;
 import org.jbiowhparser.datasets.protgroup.pirsf.PirsfParser;
 import org.jbiowhparser.datasets.taxonomy.TaxonomyParser;
@@ -138,6 +139,11 @@ public class DataSetLoader extends AbstractDefaultTool {
                 DataSetPersistence.getInstance().getDataset().setApplication("OrthoXMLLoader");
                 DataSetPersistence.getInstance().getDataset().setApplicationVersion("1.0");
                 parser = new OrthoXMLParser();
+                break;
+            case "NCBIProtClust":
+                DataSetPersistence.getInstance().getDataset().setApplication("NCBIProtClustLoader");
+                DataSetPersistence.getInstance().getDataset().setApplicationVersion("1.0");
+                parser = new NCBIProtClustParser();
                 break;
         }
 

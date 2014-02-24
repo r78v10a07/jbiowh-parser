@@ -45,7 +45,7 @@ public class ProteinGeneLink {
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + ProteinTables.PROTEIN_HAS_GENEINFO);
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + ProteinTables.PROTEIN_HAS_GENEINFO);
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_GENEINFO, false);
+        whdbmsFactory.disableKeys(ProteinTables.PROTEIN_HAS_GENEINFO);
 
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_GENEINFO
@@ -70,6 +70,6 @@ public class ProteinGeneLink {
                 + ProteinTables.getInstance().PROTEINACCESSIONNUMBER
                 + " pa on pa.AccessionNumber = gp.UniProtKBProteinAccession)");
 
-        whdbmsFactory.indexManagement(ProteinTables.PROTEIN_HAS_GENEINFO, true);
+        whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_GENEINFO);
     }
 }
