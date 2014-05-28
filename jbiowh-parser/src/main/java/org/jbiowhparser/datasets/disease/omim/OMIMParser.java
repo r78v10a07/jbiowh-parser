@@ -1,13 +1,19 @@
 package org.jbiowhparser.datasets.disease.omim;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Date;
+import org.apache.commons.compress.compressors.z.ZCompressorInputStream;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.disease.omim.files.GeneMapParser;
 import org.jbiowhparser.datasets.disease.omim.files.MorbidMapParser;
 import org.jbiowhparser.datasets.disease.omim.files.OMIMTXTParser;
@@ -24,15 +30,42 @@ import org.jbiowhpersistence.datasets.disease.omim.OMIMTables;
  *
  * @since Jul 12, 2012
  */
-public class OMIMParser extends ParserBasic implements ParseFactory {
+public class OMIMParser extends ParserFactory implements JBioWHParser {
+
+    final static int BUFFER = 2048;
 
     @Override
     public void runLoader() throws SQLException {
         DataSetPersistence.getInstance().insertDataSet();
         WIDFactory.getInstance().getWIDFromDataBase();
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         ParseFiles.getInstance().start(OMIMTables.getInstance().getTables(), DataSetPersistence.getInstance().getTempdir());
+
+        downloadFTPdata(null, 2);
+
+        if (delete) {
+            try {
+                try (ZCompressorInputStream zFile = new ZCompressorInputStream(new FileInputStream(DataSetPersistence.getInstance().getTempdir() + "omim.txt.Z"))) {
+                    int count;
+                    byte data[] = new byte[BUFFER];
+                    try (FileOutputStream fos = new FileOutputStream(DataSetPersistence.getInstance().getTempdir() + "omim.txt"); BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER)) {
+                        while ((count = zFile.read(data, 0, BUFFER)) != -1) {
+                            dest.write(data, 0, count);
+                        }
+                    }
+                }
+            } catch (IOException ex) {
+                VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+                VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                DataSetPersistence.getInstance().updateDataSet();
+                WIDFactory.getInstance().updateWIDTable();
+                ex.printStackTrace(System.err);
+                System.exit(-1);
+            }
+        }
 
         if (DataSetPersistence.getInstance().isDroptables()) {
             for (String table : OMIMTables.getInstance().getTables()) {
@@ -61,6 +94,7 @@ public class OMIMParser extends ParserBasic implements ParseFactory {
         DataSetPersistence.getInstance().updateDataSet();
         WIDFactory.getInstance().updateWIDTable();
         ParseFiles.getInstance().end();
+        cleanTmpDir();
     }
 
     @Override

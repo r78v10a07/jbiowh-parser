@@ -2,8 +2,8 @@ package org.jbiowhparser.datasets.protgroup.cog.links;
 
 import java.sql.SQLException;
 import org.jbiowhcore.logger.VerbLogger;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhpersistence.datasets.protgroup.cog.COGTables;
 import org.jbiowhpersistence.datasets.taxonomy.TaxonomyTables;
 
@@ -39,7 +39,7 @@ public class COGTaxonomyLink {
      * @throws SQLException
      */
     public void runLink() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + COGTables.COGORTHOLOGOUSGROUP_HAS_TAXONOMY);
 

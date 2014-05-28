@@ -2,8 +2,8 @@ package org.jbiowhparser.datasets.gene.genbank.links;
 
 import java.sql.SQLException;
 import org.jbiowhcore.logger.VerbLogger;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhpersistence.datasets.gene.gene.GeneTables;
 import org.jbiowhpersistence.datasets.gene.genebank.GeneBankTables;
 
@@ -39,7 +39,7 @@ public class GeneBankGeneLink {
      * @throws SQLException
      */
     public void runLink() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         VerbLogger.getInstance().log(this.getClass(), "Inserting into table: " + GeneBankTables.GENEBANKCDS_HAS_GENEINFO);
 
         whdbmsFactory.executeUpdate("insert ignore into "

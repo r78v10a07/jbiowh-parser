@@ -1,8 +1,8 @@
 package org.jbiowhparser.datasets.ppi.links;
 
 import java.sql.SQLException;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhpersistence.datasets.ppi.MIF25Tables;
 import org.jbiowhpersistence.datasets.protein.ProteinTables;
 
@@ -39,7 +39,7 @@ public class MIF25ProteinLink {
      * @throws SQLException
      */
     public void runLink() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + MIF25Tables.MIFINTERACTION_HAS_PROTEIN);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + MIF25Tables.getInstance().MIFINTERACTION_HAS_PROTEIN_TEMP);

@@ -4,7 +4,7 @@
 
     <groupId>org</groupId>
     <artifactId>jbiowh-parser</artifactId>
-    <version>6.0.2</version>
+    <version>6.1.0</version>
     <packaging>jar</packaging>
 
     <name>jbiowh-parser</name>
@@ -97,22 +97,32 @@
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-core</artifactId>
-            <version>6.0.2</version>
+            <version>6.1.0</version>
         </dependency>
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-dbms</artifactId>
-            <version>6.0.2</version>
+            <version>6.1.0</version>
         </dependency>
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-persistence</artifactId>
-            <version>6.0.2</version>
+            <version>6.1.0</version>
         </dependency>        
         <dependency>
             <groupId>net.sf.jopt-simple</groupId>
             <artifactId>jopt-simple</artifactId>
             <version>4.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.7</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.3</version>
         </dependency>
     </dependencies>
     <description>The Java Biological Warehouse (JBioWH) is a mature computational system which

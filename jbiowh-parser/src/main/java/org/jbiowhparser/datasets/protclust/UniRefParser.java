@@ -13,10 +13,10 @@ import javax.xml.parsers.SAXParserFactory;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.protclust.links.UniRefLinks;
 import org.jbiowhparser.datasets.protclust.xml.UniRef;
 import org.jbiowhparser.datasets.protclust.xml.UniRefDefaultHandler;
@@ -33,7 +33,7 @@ import org.xml.sax.SAXException;
  *
  * @since Aug 19, 2011
  */
-public class UniRefParser extends ParserBasic implements ParseFactory {
+public class UniRefParser extends ParserFactory implements JBioWHParser {
 
     /**
      * Run the UniRef Parser
@@ -48,7 +48,9 @@ public class UniRefParser extends ParserBasic implements ParseFactory {
         WIDFactory.getInstance().getWIDFromDataBase();
 
         ParseFiles.getInstance().start(UniRefTables.getInstance().getTables(), DataSetPersistence.getInstance().getTempdir());
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
+
+        downloadFTPdata(new String[]{"xml", ".xml.gz"}, 2);
 
         File dir = new File(DataSetPersistence.getInstance().getDirectory());
 
@@ -58,13 +60,13 @@ public class UniRefParser extends ParserBasic implements ParseFactory {
                 whdbmsFactory.executeUpdate("TRUNCATE TABLE " + table);
             }
         }
+        try {
+            UniRef UniRef = new UniRef();
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            if (dir.isDirectory()) {
+                List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{"xml", ".xml.gz"});
+                for (File file : files) {
 
-        UniRef UniRef = new UniRef();
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        if (dir.isDirectory()) {
-            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{"xml", ".xml.gz"});
-            for (File file : files) {
-                try {
                     saxParser = factory.newSAXParser();
                     if (file.isFile()) {
                         if (file.getCanonicalPath().endsWith(".gz")) {
@@ -73,12 +75,9 @@ public class UniRefParser extends ParserBasic implements ParseFactory {
                             saxParser.parse(file, new UniRefDefaultHandler(UniRef));
                         }
                     }
-                } catch (IOException | ParserConfigurationException | SAXException ex) {
-                    VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+
                 }
-            }
-        } else {
-            try {
+            } else {
                 saxParser = factory.newSAXParser();
 
                 if (DataSetPersistence.getInstance().getDirectory().endsWith(".gz")) {
@@ -86,9 +85,16 @@ public class UniRefParser extends ParserBasic implements ParseFactory {
                 } else {
                     saxParser.parse(new File(DataSetPersistence.getInstance().getDirectory()), new UniRefDefaultHandler(UniRef));
                 }
-            } catch (IOException | ParserConfigurationException | SAXException ex) {
-                VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
             }
+        } catch (IOException | ParserConfigurationException | SAXException ex) {
+            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            ex.printStackTrace(System.err);
+            System.exit(-1);
         }
 
         ParseFiles.getInstance().closeAllPrintWriter();
@@ -104,6 +110,7 @@ public class UniRefParser extends ParserBasic implements ParseFactory {
         DataSetPersistence.getInstance().updateDataSet();
         WIDFactory.getInstance().updateWIDTable();
         ParseFiles.getInstance().end();
+        cleanTmpDir();
     }
 
     @Override

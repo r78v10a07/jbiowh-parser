@@ -13,10 +13,10 @@ import javax.xml.parsers.SAXParserFactory;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.protein.links.ProteinLinks;
 import org.jbiowhparser.datasets.protein.xml.Uniprot;
 import org.jbiowhparser.datasets.protein.xml.UniprotDefaultHandler;
@@ -33,7 +33,7 @@ import org.xml.sax.SAXException;
  *
  * @since Aug 5, 2011
  */
-public class ProteinParser extends ParserBasic implements ParseFactory {
+public class ProteinParser extends ParserFactory implements JBioWHParser {
 
     /**
      * Run the Protein Parser
@@ -48,9 +48,7 @@ public class ProteinParser extends ParserBasic implements ParseFactory {
         WIDFactory.getInstance().getWIDFromDataBase();
 
         ParseFiles.getInstance().start(ProteinTables.getInstance().getTables(), DataSetPersistence.getInstance().getTempdir());
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
-
-        File dir = new File(DataSetPersistence.getInstance().getDirectory());
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         if (DataSetPersistence.getInstance().isDroptables()) {
             for (String table : ProteinTables.getInstance().getTables()) {
@@ -61,12 +59,16 @@ public class ProteinParser extends ParserBasic implements ParseFactory {
             dropTemporalTables();
         }
 
-        Uniprot uniprot = new Uniprot();
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        if (dir.isDirectory()) {
-            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{"xml", ".xml.gz"});
-            for (File file : files) {
-                try {
+        downloadFTPdata(new String[]{"xml", ".xml.gz"}, 2);
+
+        File dir = new File(DataSetPersistence.getInstance().getDirectory());
+        try {
+            Uniprot uniprot = new Uniprot();
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            if (dir.isDirectory()) {
+                List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{"xml", ".xml.gz"});
+                for (File file : files) {
+
                     saxParser = factory.newSAXParser();
                     if (file.isFile()) {
                         if (file.getCanonicalPath().endsWith(".gz")) {
@@ -75,12 +77,9 @@ public class ProteinParser extends ParserBasic implements ParseFactory {
                             saxParser.parse(file, new UniprotDefaultHandler(uniprot));
                         }
                     }
-                } catch (IOException | ParserConfigurationException | SAXException ex) {
-                    VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+
                 }
-            }
-        } else {
-            try {
+            } else {
                 saxParser = factory.newSAXParser();
 
                 if (DataSetPersistence.getInstance().getDirectory().endsWith(".gz")) {
@@ -88,9 +87,16 @@ public class ProteinParser extends ParserBasic implements ParseFactory {
                 } else {
                     saxParser.parse(new File(DataSetPersistence.getInstance().getDirectory()), new UniprotDefaultHandler(uniprot));
                 }
-            } catch (IOException | ParserConfigurationException | SAXException ex) {
-                VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
             }
+        } catch (IOException | ParserConfigurationException | SAXException ex) {
+            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            ex.printStackTrace(System.err);
+            System.exit(-1);
         }
 
         ParseFiles.getInstance().closeAllPrintWriter();
@@ -163,10 +169,11 @@ public class ProteinParser extends ParserBasic implements ParseFactory {
         DataSetPersistence.getInstance().updateDataSet();
         WIDFactory.getInstance().updateWIDTable();
         ParseFiles.getInstance().end();
+        cleanTmpDir();
     }
 
     private void dropTemporalTables() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         for (String table : ProteinTables.getInstance().getTables()) {
             if (table.endsWith("Temp")) {
                 VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + table);

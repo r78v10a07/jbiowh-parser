@@ -4,10 +4,10 @@ import java.sql.SQLException;
 import java.util.Date;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.gene.gene.files.Gene2AccessionParser;
 import org.jbiowhparser.datasets.gene.gene.files.Gene2EnsemblParser;
 import org.jbiowhparser.datasets.gene.gene.files.Gene2GOParser;
@@ -32,7 +32,7 @@ import org.jbiowhpersistence.datasets.gene.gene.GeneTables;
  *
  * @since Jul 5, 2011
  */
-public class GeneParser extends ParserBasic implements ParseFactory {
+public class GeneParser extends ParserFactory implements JBioWHParser {
 
     /**
      * Run the Taxonomy Parser
@@ -43,7 +43,7 @@ public class GeneParser extends ParserBasic implements ParseFactory {
     public void runLoader() throws SQLException {
         DataSetPersistence.getInstance().insertDataSet();
         WIDFactory.getInstance().getWIDFromDataBase();
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         
         if (DataSetPersistence.getInstance().isDroptables()){
             for (String table : GeneTables.getInstance().getTables()) {

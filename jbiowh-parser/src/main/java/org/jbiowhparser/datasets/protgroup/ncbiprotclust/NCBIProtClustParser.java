@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.protgroup.ncbiprotclust.files.NCBIBCPParser;
 import org.jbiowhparser.datasets.protgroup.ncbiprotclust.links.ProtClustLinks;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
@@ -27,13 +27,13 @@ import org.jbiowhpersistence.datasets.protgroup.ncbiprotclust.ProtClustTables;
  *
  * @since Jan 13, 2014
  */
-public class NCBIProtClustParser extends ParserBasic implements ParseFactory {
+public class NCBIProtClustParser extends ParserFactory implements JBioWHParser {
 
     @Override
     public void runLoader() throws SQLException {
         DataSetPersistence.getInstance().insertDataSet();
         WIDFactory.getInstance().getWIDFromDataBase();
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         File dir = new File(DataSetPersistence.getInstance().getDirectory());
 
         if (DataSetPersistence.getInstance().isDroptables()) {

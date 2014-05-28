@@ -5,12 +5,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhparser.datasets.disease.omim.exception.OMIMFormatException;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
@@ -33,7 +34,7 @@ public class MorbidMapParser {
      */
     public void loader() throws SQLException {
         try {
-            WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+            JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
             long WID = WIDFactory.getInstance().getWid();
             try (BufferedReader reader = new BufferedReader(new FileReader(new File(DataSetPersistence.getInstance().getDirectory() + OMIMTables.getInstance().MORBIDMAPFILE)))) {
@@ -61,9 +62,9 @@ public class MorbidMapParser {
                     ParseFiles.getInstance().printOnTSVFile(OMIMTables.getInstance().OMIMMORBIDMAP, fields[3].trim(), "\n");
 
                     String[] geneSymbol = fields[1].split(",");
-                    for (int i = 0; i < geneSymbol.length; i++) {
+                    for (String geneSymbol1 : geneSymbol) {
                         ParseFiles.getInstance().printOnTSVFile(OMIMTables.getInstance().OMIMMORBIDMAP_HAS_GENESYMBOLTEMP, WID, "\t");
-                        ParseFiles.getInstance().printOnTSVFile(OMIMTables.getInstance().OMIMMORBIDMAP_HAS_GENESYMBOLTEMP, geneSymbol[i].trim(), "\n");
+                        ParseFiles.getInstance().printOnTSVFile(OMIMTables.getInstance().OMIMMORBIDMAP_HAS_GENESYMBOLTEMP, geneSymbol1.trim(), "\n");
                     }
                     WID++;
                 }
@@ -92,9 +93,11 @@ public class MorbidMapParser {
         } catch (OMIMFormatException | IOException ex) {
             VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
             VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
-            VerbLogger.getInstance().log(this.getClass(), "Error: " + ex.toString());
-            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().getInitialLevel());
-            System.exit(1);
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            System.exit(-1);
         }
 
     }

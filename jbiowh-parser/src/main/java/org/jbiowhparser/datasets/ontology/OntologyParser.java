@@ -3,6 +3,7 @@ package org.jbiowhparser.datasets.ontology;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
@@ -13,13 +14,14 @@ import javax.xml.parsers.SAXParserFactory;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.ontology.links.OntologyLinks;
 import org.jbiowhparser.datasets.ontology.xml.GO;
 import org.jbiowhparser.datasets.ontology.xml.GOOntologyDefaultHandler;
+import org.jbiowhparser.utils.FTPFacade;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.ontology.OntologyTables;
@@ -33,7 +35,7 @@ import org.xml.sax.SAXException;
  *
  * @since Jun 27, 2011
  */
-public class OntologyParser extends ParserBasic implements ParseFactory {
+public class OntologyParser extends ParserFactory implements JBioWHParser {
 
     /**
      * Run the Taxonomy Parser
@@ -48,10 +50,14 @@ public class OntologyParser extends ParserBasic implements ParseFactory {
         WIDFactory.getInstance().getWIDFromDataBase();
 
         ParseFiles.getInstance().start(OntologyTables.getInstance().getTables(), DataSetPersistence.getInstance().getTempdir());
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         GO go = new GO();
-        File dir = new File(DataSetPersistence.getInstance().getDirectory());
+
+        File dir = null;
+        if (!DataSetPersistence.getInstance().isonlineFTP()) {
+            dir = new File(DataSetPersistence.getInstance().getDirectory());
+        }
 
         if (DataSetPersistence.getInstance().isDroptables()) {
             for (String table : OntologyTables.getInstance().getTables()) {
@@ -62,11 +68,12 @@ public class OntologyParser extends ParserBasic implements ParseFactory {
             dropTemporalTables();
         }
 
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        if (dir.isDirectory()) {
-            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{"xml", ".xml.gz"});
-            for (File file : files) {
-                try {
+        try {
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            if (dir != null && dir.isDirectory()) {
+                List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{"xml", ".xml.gz"});
+                for (File file : files) {
+
                     saxParser = factory.newSAXParser();
                     if (file.isFile()) {
                         if (file.getAbsolutePath().endsWith(".gz")) {
@@ -75,22 +82,41 @@ public class OntologyParser extends ParserBasic implements ParseFactory {
                             saxParser.parse(file, new GOOntologyDefaultHandler(go));
                         }
                     }
-                } catch (IOException | ParserConfigurationException | SAXException ex) {
-                    VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
                 }
-            }
-        } else {
-            try {
+            } else {
                 saxParser = factory.newSAXParser();
 
-                if (DataSetPersistence.getInstance().getDirectory().endsWith(".gz")) {
-                    saxParser.parse(new GZIPInputStream(new FileInputStream(DataSetPersistence.getInstance().getDirectory())), new GOOntologyDefaultHandler(go));
+                InputStream in;
+                FTPFacade ftp = null;
+
+                if (!DataSetPersistence.getInstance().isonlineFTP()) {
+                    in = new FileInputStream(DataSetPersistence.getInstance().getDirectory());
                 } else {
-                    saxParser.parse(new File(DataSetPersistence.getInstance().getDirectory()), new GOOntologyDefaultHandler(go));
+                    ftp = new FTPFacade(DataSetPersistence.getInstance().getOnlineSite(),
+                            DataSetPersistence.getInstance().getOnlineUser(),
+                            DataSetPersistence.getInstance().getOnlinePasswd());
+
+                    in = ftp.getFtpClient().retrieveFileStream(DataSetPersistence.getInstance().getOnlinePath());
                 }
-            } catch (IOException | ParserConfigurationException | SAXException ex) {
-                VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+
+                if (DataSetPersistence.getInstance().getDirectory().endsWith(".gz")) {
+                    in = new GZIPInputStream(in);
+                }
+                saxParser.parse(in, new GOOntologyDefaultHandler(go));
+
+                in.close();
+                if (ftp != null) {
+                    ftp.close();
+                }
             }
+        } catch (IOException | ParserConfigurationException | SAXException ex) {
+            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            System.exit(-1);
         }
 
         ParseFiles.getInstance().closeAllPrintWriter();
@@ -204,7 +230,7 @@ public class OntologyParser extends ParserBasic implements ParseFactory {
     }
 
     private void dropTemporalTables() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         for (String table : OntologyTables.getInstance().getTables()) {
             if (table.endsWith("Temp")
                     || table.equals(OntologyTables.getInstance().ONTOLOGYWIDONTOLOGYSUBSET)) {

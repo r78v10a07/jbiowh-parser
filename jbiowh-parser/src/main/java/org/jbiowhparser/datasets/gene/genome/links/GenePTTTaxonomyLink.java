@@ -2,8 +2,8 @@ package org.jbiowhparser.datasets.gene.genome.links;
 
 import java.sql.SQLException;
 import org.jbiowhcore.logger.VerbLogger;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhpersistence.datasets.gene.gene.GeneTables;
 import org.jbiowhpersistence.datasets.gene.genome.GenePTTTables;
 import org.jbiowhpersistence.datasets.taxonomy.TaxonomyTables;
@@ -41,7 +41,7 @@ public class GenePTTTaxonomyLink {
      * @throws SQLException
      */
     public void runLink() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + GenePTTTables.GENEPTT_HAS_TAXONOMY);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GenePTTTables.GENEPTT_HAS_TAXONOMY);

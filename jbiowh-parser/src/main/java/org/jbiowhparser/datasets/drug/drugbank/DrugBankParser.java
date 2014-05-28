@@ -13,10 +13,10 @@ import javax.xml.parsers.SAXParserFactory;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.drug.drugbank.links.DrugBankLinks;
 import org.jbiowhparser.datasets.drug.drugbank.xml.DrugBankDefaultHandler;
 import org.jbiowhparser.datasets.drug.drugbank.xml.Drugs;
@@ -33,7 +33,7 @@ import org.xml.sax.SAXException;
  *
  * @since Sep 9, 2011
  */
-public class DrugBankParser extends ParserBasic implements ParseFactory {
+public class DrugBankParser extends ParserFactory implements JBioWHParser {
 
     /**
      * Run the DrugBank Parser
@@ -48,7 +48,7 @@ public class DrugBankParser extends ParserBasic implements ParseFactory {
         WIDFactory.getInstance().getWIDFromDataBase();
 
         ParseFiles.getInstance().start(DrugBankTables.getInstance().getTables(), DataSetPersistence.getInstance().getTempdir());
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         File dir = new File(DataSetPersistence.getInstance().getDirectory());
 
@@ -59,12 +59,12 @@ public class DrugBankParser extends ParserBasic implements ParseFactory {
             }
         }
 
-        Drugs drugs = new Drugs();
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        if (dir.isDirectory()) {
-            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{"xml", ".xml.gz"});
-            for (File file : files) {
-                try {
+        try {
+            Drugs drugs = new Drugs();
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            if (dir.isDirectory()) {
+                List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{"xml", ".xml.gz"});
+                for (File file : files) {
                     saxParser = factory.newSAXParser();
                     if (file.isFile()) {
                         if (file.getCanonicalPath().endsWith(".gz")) {
@@ -73,12 +73,8 @@ public class DrugBankParser extends ParserBasic implements ParseFactory {
                             saxParser.parse(file, new DrugBankDefaultHandler(drugs));
                         }
                     }
-                } catch (IOException | ParserConfigurationException | SAXException ex) {
-                    VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
                 }
-            }
-        } else {
-            try {
+            } else {
                 saxParser = factory.newSAXParser();
 
                 if (DataSetPersistence.getInstance().getDirectory().endsWith(".gz")) {
@@ -86,9 +82,16 @@ public class DrugBankParser extends ParserBasic implements ParseFactory {
                 } else {
                     saxParser.parse(new File(DataSetPersistence.getInstance().getDirectory()), new DrugBankDefaultHandler(drugs));
                 }
-            } catch (IOException | ParserConfigurationException | SAXException ex) {
-                VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+
             }
+        } catch (IOException | ParserConfigurationException | SAXException ex) {
+            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            System.exit(-1);
         }
 
         ParseFiles.getInstance().closeAllPrintWriter();

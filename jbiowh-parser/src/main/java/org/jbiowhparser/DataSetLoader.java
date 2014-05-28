@@ -9,7 +9,7 @@ import joptsimple.OptionSet;
 import org.jbiowhcore.basic.JBioWHUserData;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.AbstractDefaultTool;
-import org.jbiowhdbms.dbms.JBioWHDBMS;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.mysql.WHMySQL;
 import org.jbiowhparser.datasets.disease.omim.OMIMParser;
 import org.jbiowhparser.datasets.domain.pfam.PFamParser;
@@ -49,11 +49,11 @@ public class DataSetLoader extends AbstractDefaultTool {
     public void dataSetLoader() throws SQLException, ParserConfigurationException, SAXException, IOException {
         DataSetPersistence.getInstance().readDatasetFromFile(configXMLFile);
         JBioWHUserData factory = JBioWHPersistence.getInstance().getWhdbmsFactory();
-        JBioWHDBMS.getInstance().setWhdbmsFactory(
+        JBioWHDBMSSingleton.getInstance().setWhdbmsFactory(
                 new WHMySQL(factory.getDriver(), factory.getUrl(), factory.getUser(), factory.getPasswd(), true));
         VerbLogger.getInstance().log(this.getClass(), "Parsing a " + DataSetPersistence.getInstance().getType() + " data source");
-        JBioWHDBMS.getInstance().setMainURL(factory.getUrl());
-        ParseFactory parser = null;
+        JBioWHDBMSSingleton.getInstance().setMainURL(factory.getUrl());
+        JBioWHParser parser = null;
         switch (DataSetPersistence.getInstance().getType()) {
             case "Taxonomy":
                 DataSetPersistence.getInstance().getDataset().setApplication("TaxonomyLoader");
@@ -207,6 +207,6 @@ public class DataSetLoader extends AbstractDefaultTool {
             file.close();
         }
         JBioWHPersistence.getInstance().closeAll();
-        JBioWHDBMS.getInstance().closeAll();
+        JBioWHDBMSSingleton.getInstance().closeAll();
     }
 }

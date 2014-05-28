@@ -13,10 +13,10 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.protgroup.pirsf.links.PirsfLinks;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
@@ -29,13 +29,16 @@ import org.jbiowhpersistence.datasets.protgroup.pirsf.PirsfTables;
  *
  * @since Dec 11, 2013
  */
-public class PirsfParser extends ParserBasic implements ParseFactory {
+public class PirsfParser extends ParserFactory implements JBioWHParser {
 
     @Override
     public void runLoader() throws SQLException {
         DataSetPersistence.getInstance().insertDataSet();
         WIDFactory.getInstance().getWIDFromDataBase();
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
+
+        downloadFTPdata(new String[]{".dat"}, 2);
+
         File dir = new File(DataSetPersistence.getInstance().getDirectory());
 
         if (DataSetPersistence.getInstance().isDroptables()) {
@@ -98,7 +101,14 @@ public class PirsfParser extends ParserBasic implements ParseFactory {
                             }
                         } catch (IllegalStateException ex) {
                             VerbLogger.getInstance().log(this.getClass(), "Problem on line: " + line);
+                            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+                            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                            DataSetPersistence.getInstance().updateDataSet();
+                            WIDFactory.getInstance().updateWIDTable();
                             ex.printStackTrace(System.err);
+                            System.exit(-1);
                         }
                     }
 
@@ -110,19 +120,39 @@ public class PirsfParser extends ParserBasic implements ParseFactory {
                         PirsfLinks.getInstance().runLink();
                     }
                 } else {
+                    VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
                     VerbLogger.getInstance().log(this.getClass(), "Can find the file " + PirsfTables.getInstance().PIRSF_FILE + " on directory " + dir.getCanonicalPath());
+                    DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                    DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                    DataSetPersistence.getInstance().updateDataSet();
+                    WIDFactory.getInstance().updateWIDTable();
+                    System.exit(-1);
                 }
             } catch (IOException ex) {
+                VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
                 VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                DataSetPersistence.getInstance().updateDataSet();
+                WIDFactory.getInstance().updateWIDTable();
+                ex.printStackTrace(System.err);
+                System.exit(-1);
             }
         } else {
-            VerbLogger.getInstance().log(this.getClass(), "The config XML tag <directory> has to point to the DB directory");
+            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+            VerbLogger.getInstance().log(this.getClass(), "The config XML tag <directory> has to point to the DB directory");            
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            System.exit(-1);
         }
 
         DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
         DataSetPersistence.getInstance().getDataset().setStatus("Inserted");
         DataSetPersistence.getInstance().updateDataSet();
         WIDFactory.getInstance().updateWIDTable();
+        cleanTmpDir();
     }
 
     @Override

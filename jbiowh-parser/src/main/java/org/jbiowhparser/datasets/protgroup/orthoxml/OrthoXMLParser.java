@@ -21,10 +21,10 @@ import org.jbiowhcore.utility.fileformats.orthoxml.Scores;
 import org.jbiowhcore.utility.fileformats.orthoxml.Species;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.protgroup.orthoxml.files.OrthoXMLPrintOnTSVFile;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
@@ -37,13 +37,13 @@ import org.jbiowhpersistence.datasets.protgroup.orthoxml.OrthoXMLTables;
  *
  * @since Jan 8, 2014
  */
-public class OrthoXMLParser extends ParserBasic implements ParseFactory {
+public class OrthoXMLParser extends ParserFactory implements JBioWHParser {
 
     @Override
     public void runLoader() throws SQLException {
         DataSetPersistence.getInstance().insertDataSet();
         WIDFactory.getInstance().getWIDFromDataBase();
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         File dir = new File(DataSetPersistence.getInstance().getDirectory());
 
         if (DataSetPersistence.getInstance().isDroptables()) {

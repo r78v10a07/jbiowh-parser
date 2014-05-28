@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!--- Root document -->
+<!ELEMENT warehouse (droptables|verbose|xsdfiledef|url|driver|temporal|directory|dbpassword|dbuser|database|releaseDate|homeurl|version|type|name)*>
+
+<!--- Name of the data source to be storage into DataSet Table -->
+<!ELEMENT name (#PCDATA)>
+
+<!--- Type of the data source to be storage into DataSet Table -->
+<!ELEMENT type (#PCDATA)>
+
+<!--- Version of the data source -->
+<!ELEMENT version (#PCDATA)>
+
+<!--- Home URL of the data source -->
+<!ELEMENT homeurl (#PCDATA)>
+
+<!--- Release date of the data source -->
+<!ELEMENT releaseDate (#PCDATA)>
+
+<!--- DBMS name -->
+<!ELEMENT database (#PCDATA)>
+
+<!--- User to connect to the DBMS -->
+<!ELEMENT dbuser (#PCDATA)>
+
+<!--- Password to connect to the DBMS -->
+<!ELEMENT dbpassword (#PCDATA)>
+
+<!--- Directory with the data source files -->
+<!ELEMENT directory (#PCDATA)>
+
+<!--- Temporal directory to write files -->
+<!ELEMENT temporal (#PCDATA)>
+
+<!--- JDBC driver -->
+<!ELEMENT driver (#PCDATA)>
+
+<!--- JDBC URL -->
+<!ELEMENT url (#PCDATA)>
+
+<!--- XML XSD definition file -->
+<!ELEMENT xsdfiledef (#PCDATA)>
+
+<!--- Verbose (none, info, debug) -->
+<!ELEMENT verbose (#PCDATA)>
+
+<!--- Drop relational tables if exist -->
+<!ELEMENT droptables (#PCDATA)>
+
+<!--- Run external links -->
+<!ELEMENT runlinks (#PCDATA)>

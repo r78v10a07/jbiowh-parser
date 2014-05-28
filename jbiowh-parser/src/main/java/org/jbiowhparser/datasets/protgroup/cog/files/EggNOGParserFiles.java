@@ -1,8 +1,8 @@
 package org.jbiowhparser.datasets.protgroup.cog.files;
 
 import java.sql.SQLException;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.protgroup.cog.COGTables;
@@ -17,7 +17,7 @@ import org.jbiowhpersistence.datasets.protgroup.cog.COGTables;
 public class EggNOGParserFiles {
 
     public void parserFiles() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         String descrip = DataSetPersistence.getInstance().getDirectory() + "/NOG.description.txt";
         String funcat = DataSetPersistence.getInstance().getDirectory() + "/NOG.funccat.txt";
         String members = DataSetPersistence.getInstance().getDirectory() + "/NOG.members.txt";

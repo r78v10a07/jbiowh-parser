@@ -2,8 +2,8 @@ package org.jbiowhparser.datasets.gene.genbank;
 
 import java.sql.SQLException;
 import java.util.Date;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.gene.genbank.files.GeneBankUpdateFlatParser;
 import org.jbiowhparser.datasets.gene.genbank.links.GeneBankLinks;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
@@ -18,7 +18,7 @@ import org.jbiowhpersistence.datasets.gene.genebank.GeneBankTables;
  *
  * @since May 13, 2013
  */
-public class GeneBankUpdateParser extends ParserBasic implements ParseFactory {
+public class GeneBankUpdateParser extends ParserFactory implements JBioWHParser {
 
     @Override
     public void runLoader() throws SQLException {

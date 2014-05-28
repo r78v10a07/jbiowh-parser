@@ -13,10 +13,10 @@ import javax.xml.parsers.SAXParserFactory;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.ppi.links.MIF25Links;
 import org.jbiowhparser.datasets.ppi.xml.MIF25;
 import org.jbiowhparser.datasets.ppi.xml.MIF25DefaultHandler;
@@ -33,7 +33,7 @@ import org.xml.sax.SAXException;
  *
  * @since Aug 15, 2011
  */
-public class MIF25Parser extends ParserBasic implements ParseFactory {
+public class MIF25Parser extends ParserFactory implements JBioWHParser {
 
     /**
      * Run the MIF25 Parser
@@ -48,9 +48,7 @@ public class MIF25Parser extends ParserBasic implements ParseFactory {
         WIDFactory.getInstance().getWIDFromDataBase();
 
         ParseFiles.getInstance().start(MIF25Tables.getInstance().getTables(), DataSetPersistence.getInstance().getTempdir());
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
-
-        File dir = new File(DataSetPersistence.getInstance().getDirectory());
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         if (DataSetPersistence.getInstance().isDroptables()) {
             for (String table : MIF25Tables.getInstance().getTables()) {
@@ -59,12 +57,16 @@ public class MIF25Parser extends ParserBasic implements ParseFactory {
             }
         }
 
-        MIF25 MIF25 = new MIF25();
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        if (dir.isDirectory()) {
-            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{"xml", ".xml.gz"});
-            for (File file : files) {
-                try {
+        downloadFTPdata(new String[]{"xml", ".xml.gz"}, 2);
+
+        File dir = new File(DataSetPersistence.getInstance().getDirectory());
+
+        try {
+            MIF25 MIF25 = new MIF25();
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            if (dir.isDirectory()) {
+                List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{"xml", ".xml.gz"});
+                for (File file : files) {
                     saxParser = factory.newSAXParser();
                     if (file.isFile()) {
                         if (file.getCanonicalPath().endsWith(".gz")) {
@@ -73,12 +75,8 @@ public class MIF25Parser extends ParserBasic implements ParseFactory {
                             saxParser.parse(file, new MIF25DefaultHandler(MIF25));
                         }
                     }
-                } catch (IOException | ParserConfigurationException | SAXException ex) {
-                    VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
                 }
-            }
-        } else {
-            try {
+            } else {
                 saxParser = factory.newSAXParser();
 
                 if (DataSetPersistence.getInstance().getDirectory().endsWith(".gz")) {
@@ -86,9 +84,15 @@ public class MIF25Parser extends ParserBasic implements ParseFactory {
                 } else {
                     saxParser.parse(new File(DataSetPersistence.getInstance().getDirectory()), new MIF25DefaultHandler(MIF25));
                 }
-            } catch (IOException | ParserConfigurationException | SAXException ex) {
-                VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
             }
+        } catch (IOException | ParserConfigurationException | SAXException ex) {
+            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            System.exit(-1);
         }
 
         ParseFiles.getInstance().closeAllPrintWriter();
@@ -104,6 +108,7 @@ public class MIF25Parser extends ParserBasic implements ParseFactory {
         DataSetPersistence.getInstance().updateDataSet();
         WIDFactory.getInstance().updateWIDTable();
         ParseFiles.getInstance().end();
+        cleanTmpDir();
     }
 
     @Override
