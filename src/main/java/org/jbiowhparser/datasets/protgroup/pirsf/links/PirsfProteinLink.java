@@ -2,8 +2,8 @@ package org.jbiowhparser.datasets.protgroup.pirsf.links;
 
 import java.sql.SQLException;
 import org.jbiowhcore.logger.VerbLogger;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhpersistence.datasets.protein.ProteinTables;
 import org.jbiowhpersistence.datasets.protgroup.pirsf.PirsfTables;
 
@@ -39,7 +39,7 @@ public class PirsfProteinLink {
      * @throws SQLException
      */
     public void runLink() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         VerbLogger.getInstance().log(this.getClass(), "Creating table: " + PirsfTables.PIRSF_HAS_PROTEIN);
 

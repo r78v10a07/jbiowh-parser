@@ -1,18 +1,21 @@
 package org.jbiowhparser.datasets.gene.genome;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.gene.genome.links.GenePTTLinks;
+import org.jbiowhparser.utils.FTPFacade;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.gene.gene.GeneTables;
@@ -26,7 +29,7 @@ import org.jbiowhpersistence.datasets.gene.genome.GenePTTTables;
  *
  * @since Aug 5, 2011
  */
-public class GenePTTParser extends ParserBasic implements ParseFactory {
+public class GenePTTParser extends ParserFactory implements JBioWHParser {
 
     /**
      * This method load the data in gene_info file to its relational tables
@@ -34,7 +37,8 @@ public class GenePTTParser extends ParserBasic implements ParseFactory {
      * @throws SQLException
      */
     public void loader() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        List files;
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         File dir = new File(DataSetPersistence.getInstance().getDirectory());
 
@@ -53,52 +57,82 @@ public class GenePTTParser extends ParserBasic implements ParseFactory {
             whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneTables.GENEINFO_HAS_GENERNT);
         }
 
-        if (dir.isDirectory()) {
-            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{".ptt", ".rnt"});
-            int i = 0;
-
-            whdbmsFactory.executeUpdate("ALTER TABLE " + GenePTTTables.GENERNT + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
-
-            for (File file : files) {
-                try {
-                    if (file.isFile() && file.getCanonicalPath().endsWith(".ptt")) {
-                        VerbLogger.getInstance().log(this.getClass(), "File: " + (i++) + " of: " + files.size());
-                        VerbLogger.getInstance().log(this.getClass(), "Inserting file: " + file.getCanonicalPath());
-                        whdbmsFactory.loadTSVFileIgnore(GenePTTTables.GENEPTT, file,
-                                "  IGNORE 3 LINES "
-                                + "(Location,Strand,PLength,ProteinGi,@GeneSymbol,@GeneLocusTag,@Code,@COG,Product) "
-                                + "set PTTFile='" + file.getName().substring(0, file.getName().length() - 4) + "',"
-                                + "pFrom=SUBSTRING(REPLACE(Location,'..',' '),1,LOCATE(' ',REPLACE(Location,'..',' ')) - 1),"
-                                + "pTo=SUBSTRING(REPLACE(Location,'..',' '),LOCATE(' ',REPLACE(Location,'..',' ')) + 1),"
-                                + "GeneSymbol=REPLACE(@GeneSymbol,'-',NULL),"
-                                + "GeneLocusTag=REPLACE(@GeneLocusTag,'-',NULL),"
-                                + "Code=REPLACE(@Code,'-',NULL),"
-                                + "COG=REPLACE(@COG,'-',NULL),"
-                                + "DataSetWID=" + DataSetPersistence.getInstance().getDataset().getWid());
-                    } else if (file.isFile() && file.getCanonicalPath().endsWith(".rnt")) {
-                        VerbLogger.getInstance().log(this.getClass(), "File: " + (i++) + " of: " + files.size());
-                        VerbLogger.getInstance().log(this.getClass(), "Inserting file: " + file.getCanonicalPath());
-                        whdbmsFactory.loadTSVFileIgnore(GenePTTTables.GENERNT, file,
-                                "  IGNORE 3 LINES "
-                                + "(Location,Strand,PLength,GenomicNucleotideGi,@GeneSymbol,@GeneLocusTag,@Code,@COG,Product) "
-                                + "set PTTFile='" + file.getName().substring(0, file.getName().length() - 4) + "',"
-                                + "pFrom=SUBSTRING(REPLACE(Location,'..',' '),1,LOCATE(' ',REPLACE(Location,'..',' ')) - 1),"
-                                + "pTo=SUBSTRING(REPLACE(Location,'..',' '),LOCATE(' ',REPLACE(Location,'..',' ')) + 1),"
-                                + "GeneSymbol=REPLACE(@GeneSymbol,'-',NULL),"
-                                + "GeneLocusTag=REPLACE(@GeneLocusTag,'-',NULL),"
-                                + "Code=REPLACE(@Code,'-',NULL),"
-                                + "COG=REPLACE(@COG,'-',NULL),"
-                                + "DataSetWID=" + DataSetPersistence.getInstance().getDataset().getWid());
-                    }
-
-                } catch (IOException ex) {
-                    VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
-                }
-            }
-
-            WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
-                    + GenePTTTables.GENERNT, "WID"));
+        if (DataSetPersistence.getInstance().isonlineFTP()) {
+            FTPFacade ftp = new FTPFacade(DataSetPersistence.getInstance().getOnlineSite(),
+                    DataSetPersistence.getInstance().getOnlineUser(),
+                    DataSetPersistence.getInstance().getOnlinePasswd());
+            files = ftp.listFilesString(DataSetPersistence.getInstance().getOnlinePath(), new String[]{".ptt", ".rnt"}, 2);
+            ftp.close();
+        } else {
+            files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{".ptt", ".rnt"});
         }
+        int i = 0;
+
+        whdbmsFactory.executeUpdate("ALTER TABLE " + GenePTTTables.GENERNT + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
+
+        for (Object ofile : files) {
+            try {
+                File file;
+                if (ofile instanceof File) {
+                    file = ((File) ofile);
+                } else {
+                    FTPFacade ftp = new FTPFacade(DataSetPersistence.getInstance().getOnlineSite(),
+                            DataSetPersistence.getInstance().getOnlineUser(),
+                            DataSetPersistence.getInstance().getOnlinePasswd());
+                    int index = ((String) ofile).lastIndexOf("/");
+                    try (OutputStream tmpFile = new FileOutputStream(DataSetPersistence.getInstance().getTempdir() + ((String) ofile).substring(index + 1))) {
+                        ftp.getFtpClient().retrieveFile((String) ofile, tmpFile);
+                    }
+                    ftp.close();
+                    file = new File(DataSetPersistence.getInstance().getTempdir() + ((String) ofile).substring(index + 1));
+                }
+
+                if (file.isFile() && file.getCanonicalPath().endsWith(".ptt")) {
+                    VerbLogger.getInstance().log(this.getClass(), "File: " + (i++) + " of: " + files.size());
+                    VerbLogger.getInstance().log(this.getClass(), "Inserting file: " + file.getCanonicalPath());
+                    whdbmsFactory.loadTSVFileIgnore(GenePTTTables.GENEPTT, file,
+                            "  IGNORE 3 LINES "
+                            + "(Location,Strand,PLength,ProteinGi,@GeneSymbol,@GeneLocusTag,@Code,@COG,Product) "
+                            + "set PTTFile='" + file.getName().substring(0, file.getName().length() - 4) + "',"
+                            + "pFrom=SUBSTRING(REPLACE(Location,'..',' '),1,LOCATE(' ',REPLACE(Location,'..',' ')) - 1),"
+                            + "pTo=SUBSTRING(REPLACE(Location,'..',' '),LOCATE(' ',REPLACE(Location,'..',' ')) + 1),"
+                            + "GeneSymbol=REPLACE(@GeneSymbol,'-',NULL),"
+                            + "GeneLocusTag=REPLACE(@GeneLocusTag,'-',NULL),"
+                            + "Code=REPLACE(@Code,'-',NULL),"
+                            + "COG=REPLACE(@COG,'-',NULL),"
+                            + "DataSetWID=" + DataSetPersistence.getInstance().getDataset().getWid());
+                } else if (file.isFile() && file.getCanonicalPath().endsWith(".rnt")) {
+                    VerbLogger.getInstance().log(this.getClass(), "File: " + (i++) + " of: " + files.size());
+                    VerbLogger.getInstance().log(this.getClass(), "Inserting file: " + file.getCanonicalPath());
+                    whdbmsFactory.loadTSVFileIgnore(GenePTTTables.GENERNT, file,
+                            "  IGNORE 3 LINES "
+                            + "(Location,Strand,PLength,GenomicNucleotideGi,@GeneSymbol,@GeneLocusTag,@Code,@COG,Product) "
+                            + "set PTTFile='" + file.getName().substring(0, file.getName().length() - 4) + "',"
+                            + "pFrom=SUBSTRING(REPLACE(Location,'..',' '),1,LOCATE(' ',REPLACE(Location,'..',' ')) - 1),"
+                            + "pTo=SUBSTRING(REPLACE(Location,'..',' '),LOCATE(' ',REPLACE(Location,'..',' ')) + 1),"
+                            + "GeneSymbol=REPLACE(@GeneSymbol,'-',NULL),"
+                            + "GeneLocusTag=REPLACE(@GeneLocusTag,'-',NULL),"
+                            + "Code=REPLACE(@Code,'-',NULL),"
+                            + "COG=REPLACE(@COG,'-',NULL),"
+                            + "DataSetWID=" + DataSetPersistence.getInstance().getDataset().getWid());
+                }
+                if (ofile instanceof String) {
+                    file.delete();
+                }
+
+            } catch (IOException ex) {
+                VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+                VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                DataSetPersistence.getInstance().updateDataSet();
+                WIDFactory.getInstance().updateWIDTable();
+                System.exit(-1);
+            }
+        }
+
+        WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
+                + GenePTTTables.GENERNT, "WID"));
 
         if (DataSetPersistence.getInstance().isRunlinks()) {
             GenePTTLinks.getInstance().runLink();

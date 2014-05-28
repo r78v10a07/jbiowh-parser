@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Date;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhparser.datasets.disease.omim.files.tags.OMIMTabs;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
@@ -44,18 +45,20 @@ public class OMIMTXTParser extends OMIMTabs {
                             instance.create(entry);
                         } catch (PreexistingEntityException ex) {
                             VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
-                            VerbLogger.getInstance().log(this.getClass(),
-                                    ex.getMessage());
-                            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().getInitialLevel());
-                            ex.printStackTrace(System.out);
-                            System.exit(1);
+                            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                            DataSetPersistence.getInstance().updateDataSet();
+                            WIDFactory.getInstance().updateWIDTable();
+                            System.exit(-1);
                         } catch (Exception ex) {
                             VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
-                            VerbLogger.getInstance().log(this.getClass(),
-                                    ex.getMessage());
-
-                            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().getInitialLevel());
-                            System.exit(1);
+                            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                            DataSetPersistence.getInstance().updateDataSet();
+                            WIDFactory.getInstance().updateWIDTable();
+                            System.exit(-1);
                         }
                     }
                     entry = new OMIM(WIDFactory.getInstance().getWid());
@@ -99,9 +102,11 @@ public class OMIMTXTParser extends OMIMTabs {
         } catch (IOException ex) {
             VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
             VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
-            VerbLogger.getInstance().log(this.getClass(), "Error: " + ex.toString());
-            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().getInitialLevel());
-            System.exit(1);
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            System.exit(-1);
         }
     }
 }

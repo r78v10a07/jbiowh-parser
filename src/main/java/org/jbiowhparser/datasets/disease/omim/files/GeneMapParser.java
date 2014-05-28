@@ -3,8 +3,8 @@ package org.jbiowhparser.datasets.disease.omim.files;
 import java.sql.SQLException;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.disease.omim.OMIMTables;
@@ -25,7 +25,7 @@ public class GeneMapParser {
      * @throws SQLException
      */
     public void loader() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         VerbLogger.getInstance().log(this.getClass(), "Inserting the " + OMIMTables.getInstance().OMIMGENEMAP + " file");
 
@@ -67,7 +67,7 @@ public class GeneMapParser {
      * string array repeating the citation id
      */
     private void splitGeneSymbol() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + OMIMTables.getInstance().OMIMGENEMAP_HAS_GENESYMBOLTEMP);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + OMIMTables.getInstance().OMIMGENEMAP_HAS_GENESYMBOLTEMP);
 
@@ -100,7 +100,7 @@ public class GeneMapParser {
      * string array repeating the citation id
      */
     private void splitMethod() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + OMIMTables.getInstance().OMIMMETHODTEMP);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + OMIMTables.getInstance().OMIMMETHODTEMP);
 

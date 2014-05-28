@@ -10,18 +10,22 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
+import org.apache.commons.net.ftp.FTPFile;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
+import org.jbiowhparser.utils.FTPFacade;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.gene.gene.GeneTables;
@@ -33,7 +37,7 @@ import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankCDS;
 import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankCDSDBXref;
 import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankCDSLocation;
 import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankCOG;
-import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankFeatures;
+import org.jbiowhpersistence.datasets.gene.genebank.entities.GeneBankFeature;
 
 /**
  * This class is the Genbank parser for the SEQ flat files
@@ -73,7 +77,8 @@ public class GeneBankFlatParser {
      * @throws SQLException
      */
     public void load() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        FTPFacade ftp = null;
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         File dir = new File(DataSetPersistence.getInstance().getDirectory());
 
         whdbmsFactory.disableKeys(GeneBankTables.GENEBANKCDS_HAS_GENEINFO);
@@ -83,26 +88,60 @@ public class GeneBankFlatParser {
         whdbmsFactory.disableKeys(GeneBankTables.getInstance().GENEBANKCDSDBXREF);
         whdbmsFactory.disableKeys(GeneBankTables.getInstance().GENEBANKFEATURES);
 
-        long startTime = System.currentTimeMillis();
-        if (dir.isDirectory()) {
-            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{".gbk", ".gbk.gz", ".seq", ".seq.gz",".gbff",".gbff.gz"});
+        Float esTime;
+        long startTime = System.nanoTime();
+        List files;
+        try {
+            if (DataSetPersistence.getInstance().isonlineFTP()) {
+                ftp = new FTPFacade(DataSetPersistence.getInstance().getOnlineSite(),
+                        DataSetPersistence.getInstance().getOnlineUser(),
+                        DataSetPersistence.getInstance().getOnlinePasswd());
+                ftp.getFtpClient().changeWorkingDirectory(DataSetPersistence.getInstance().getOnlinePath());
+                files = ftp.listFiles("./", new String[]{".gbk", ".gbk.gz", ".seq", ".seq.gz", ".gbff", ".gbff.gz"});
+                ftp.close();
+            } else {
+                files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{".gbk", ".gbk.gz", ".seq", ".seq.gz", ".gbff", ".gbff.gz"});
+            }
+
             int i = 0;
-            for (File file : files) {
+
+            for (Object file : files) {
                 whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneBankTables.getInstance().GENEBANKCDSTEMP);
                 ParseFiles.getInstance().start(GeneBankTables.getInstance().getTables(), DataSetPersistence.getInstance().getTempdir());
-                try {
-                    InputStream in;
-                    VerbLogger.getInstance().log(this.getClass(), "File: " + (i++) + " of: " + files.size());
-                    if (file.isFile() && file.getCanonicalPath().endsWith(".gz")) {
-                        in = new GZIPInputStream(new FileInputStream(file));
+                String name = null;
+                InputStream in = null;
+
+                if (file instanceof File) {
+                    name = ((File) file).getName();
+                    if (((File) file).isFile() && name.endsWith(".gz")) {
+                        in = new GZIPInputStream(new FileInputStream(((File) file)));
                     } else {
-                        in = new FileInputStream(file);
+                        in = new FileInputStream(((File) file));
                     }
-                    VerbLogger.getInstance().log(this.getClass(), "Parsing file " + i + " " + file.getCanonicalPath());
-                    parser(in, file.getName());
-                } catch (IOException ex) {
-                    VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                    VerbLogger.getInstance().log(this.getClass(), "Parsing file " + i + " " + ((File) file).getCanonicalPath());
+                } else if (file instanceof FTPFile && ftp != null) {
+                    name = ((FTPFile) file).getName();
+                    ftp = new FTPFacade(DataSetPersistence.getInstance().getOnlineSite(),
+                            DataSetPersistence.getInstance().getOnlineUser(),
+                            DataSetPersistence.getInstance().getOnlinePasswd());
+                    ftp.getFtpClient().changeWorkingDirectory(DataSetPersistence.getInstance().getOnlinePath());
+                    if (name.endsWith(".gz")) {
+                        in = new GZIPInputStream(ftp.getFtpClient().retrieveFileStream(name));
+                    } else {
+                        in = ftp.getFtpClient().retrieveFileStream(name);
+                    }
                 }
+                if (in != null && name != null) {
+                    VerbLogger.getInstance().log(this.getClass(), "File: " + (i++) + " of: " + files.size() + " with name: " + name);
+                    parser(in, name);
+                    in.close();
+                }
+
+                if (ftp != null) {
+                    VerbLogger.getInstance().log(this.getClass(), "Closing connection to " + DataSetPersistence.getInstance().getOnlineSite());
+                    ftp.close();
+                }
+
                 ParseFiles.getInstance().closeAllPrintWriter();
                 whdbmsFactory.loadTSVTables(GeneBankTables.getInstance().getTables());
                 ParseFiles.getInstance().end();
@@ -119,18 +158,28 @@ public class GeneBankFlatParser {
                         + " a on c.ProteinGi = a.ProteinGi)");
 
                 whdbmsFactory.executeUpdate("TRUNCATE TABLE " + GeneBankTables.getInstance().GENEBANKCDSTEMP);
-                String strTime = String.format("%.2f", ((float) ((((long) (System.currentTimeMillis() - startTime) / 1000)) / i) * (files.size() - i) / 3600.0));
+                esTime = ((float) ((float) TimeUnit.SECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS) * (files.size() - i) / 3600.0));
+                String strTime = String.format("%.2f", esTime);
                 VerbLogger.getInstance().log(this.getClass(), "Estimated left time: " + strTime + " h");
             }
 
-            whdbmsFactory.enableKeys(GeneBankTables.GENEBANKCDS_HAS_GENEINFO);
-            whdbmsFactory.enableKeys(GeneBankTables.getInstance().GENEBANK);
-            whdbmsFactory.enableKeys(GeneBankTables.getInstance().GENEBANKACCESSION);
-            whdbmsFactory.enableKeys(GeneBankTables.getInstance().GENEBANKCDS);
-            whdbmsFactory.enableKeys(GeneBankTables.getInstance().GENEBANKCDSDBXREF);
-            whdbmsFactory.enableKeys(GeneBankTables.getInstance().GENEBANKFEATURES);
-
+        } catch (IOException ex) {
+            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            System.exit(-1);
         }
+
+        whdbmsFactory.enableKeys(GeneBankTables.GENEBANKCDS_HAS_GENEINFO);
+        whdbmsFactory.enableKeys(GeneBankTables.getInstance().GENEBANK);
+        whdbmsFactory.enableKeys(GeneBankTables.getInstance().GENEBANKACCESSION);
+        whdbmsFactory.enableKeys(GeneBankTables.getInstance().GENEBANKCDS);
+        whdbmsFactory.enableKeys(GeneBankTables.getInstance().GENEBANKCDSDBXREF);
+        whdbmsFactory.enableKeys(GeneBankTables.getInstance().GENEBANKFEATURES);
+
     }
 
     private void parser(InputStream in, String fileName) {
@@ -155,15 +204,15 @@ public class GeneBankFlatParser {
                 ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANK, fileName, "\t");
                 ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANK, geneBank.getDataSetWID(), "\n");
 
-                if (geneBank.getGeneBankAccessions() != null) {
-                    for (GeneBankAccession a : geneBank.getGeneBankAccessions()) {
+                if (geneBank.getGeneBankAccession() != null) {
+                    for (GeneBankAccession a : geneBank.getGeneBankAccession()) {
                         ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKACCESSION, geneBank.getWid(), "\t");
                         ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKACCESSION, a.getAccession(), "\n");
                     }
                 }
 
-                if (geneBank.getGeneBankFeatureses() != null) {
-                    for (GeneBankFeatures f : geneBank.getGeneBankFeatureses()) {
+                if (geneBank.getGeneBankFeature() != null) {
+                    for (GeneBankFeature f : geneBank.getGeneBankFeature()) {
                         if (f.getKeyName().toUpperCase().contains("RNA") && !f.getKeyName().toUpperCase().contains("misc")) {
                             ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKFEATURES, geneBank.getWid(), "\t");
                             ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKFEATURES, f.getKeyName(), "\t");
@@ -175,8 +224,8 @@ public class GeneBankFlatParser {
                     }
                 }
 
-                if (geneBank.getGeneBankCDSs() != null) {
-                    for (GeneBankCDS c : geneBank.getGeneBankCDSs()) {
+                if (geneBank.getGeneBankCDS() != null) {
+                    for (GeneBankCDS c : geneBank.getGeneBankCDS()) {
                         ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDS, c.getWid(), "\t");
                         if (c.getProteinGi() == -1) {
                             ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDS, (String) null, "\t");
@@ -202,8 +251,8 @@ public class GeneBankFlatParser {
                             }
                         }
 
-                        if (c.getGeneBankCDSDBXrefs() != null) {
-                            for (GeneBankCDSDBXref r : c.getGeneBankCDSDBXrefs()) {
+                        if (c.getGeneBankCDSDBXref() != null) {
+                            for (GeneBankCDSDBXref r : c.getGeneBankCDSDBXref()) {
                                 ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSDBXREF, c.getWid(), "\t");
                                 ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSDBXREF, r.getdBXref(), "\t");
                                 ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCDSDBXREF, r.getdBIdent(), "\n");
@@ -212,8 +261,8 @@ public class GeneBankFlatParser {
 
                         if (c.getGeneBankCOG() != null) {
                             for (GeneBankCOG cog : c.getGeneBankCOG()) {
-                                ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCOG, c.getWid(), "\t");
-                                ParseFiles.getInstance().printOnTSVFile(GeneBankTables.getInstance().GENEBANKCOG, cog.getCogId(), "\n");
+                                ParseFiles.getInstance().printOnTSVFile(GeneBankTables.GENEBANKCOG, c.getWid(), "\t");
+                                ParseFiles.getInstance().printOnTSVFile(GeneBankTables.GENEBANKCOG, cog.getCogId(), "\n");
                             }
                         }
                     }
@@ -222,10 +271,11 @@ public class GeneBankFlatParser {
         } catch (Exception ex) {
             VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
             VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
-            VerbLogger.getInstance().log(this.getClass(), "Error: " + ex.toString());
-            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().getInitialLevel());
-            ex.printStackTrace(System.out);
-            System.exit(1);
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            System.exit(-1);
         }
 
     }
@@ -249,9 +299,9 @@ public class GeneBankFlatParser {
             if (line.startsWith(LOCUS)) {
                 geneBank = new GeneBank(WIDFactory.getInstance().getWid());
                 WIDFactory.getInstance().increaseWid();
-                geneBank.setGeneBankFeatureses(new ArrayList<GeneBankFeatures>());
-                geneBank.setGeneBankAccessions(new ArrayList<GeneBankAccession>());
-                geneBank.setGeneBankCDSs(new HashSet<GeneBankCDS>());
+                geneBank.setGeneBankFeature(new ArrayList<GeneBankFeature>());
+                geneBank.setGeneBankAccession(new ArrayList<GeneBankAccession>());
+                geneBank.setGeneBankCDS(new HashSet<GeneBankCDS>());
 
                 geneBank.setLocusName(line.substring(12, 27).trim());
                 geneBank.setSeqLengh(Integer.parseInt(line.substring(29, 40).trim()));
@@ -274,7 +324,7 @@ public class GeneBankFlatParser {
                     for (String s : line.replace(ACCESSION, "").trim().split(" +")) {
                         GeneBankAccession a = new GeneBankAccession();
                         a.setAccession(s);
-                        geneBank.getGeneBankAccessions().add(a);
+                        geneBank.getGeneBankAccession().add(a);
                     }
                 }
                 if (line.startsWith(VERSION)) {
@@ -422,7 +472,7 @@ public class GeneBankFlatParser {
                         cds.setGeneBank(null);
                         cds.setGeneBankWID(geneBank.getWid());
                         cds.setGeneInfo(new HashSet<GeneInfo>());
-                        cds.setGeneBankCDSDBXrefs(new HashSet<GeneBankCDSDBXref>());
+                        cds.setGeneBankCDSDBXref(new HashSet<GeneBankCDSDBXref>());
                         cds.setGeneBankCOG(new HashSet<GeneBankCOG>());
                         cds.setGenePTT(null);
                         cds.setProteinGi(-1);
@@ -438,7 +488,7 @@ public class GeneBankFlatParser {
                                     GeneBankCDSDBXref ref = new GeneBankCDSDBXref();
                                     ref.setdBXref(db.substring(0, db.indexOf(":")));
                                     ref.setdBIdent(db.substring(db.indexOf(":") + 1));
-                                    cds.getGeneBankCDSDBXrefs().add(ref);
+                                    cds.getGeneBankCDSDBXref().add(ref);
                                 }
                             }
 
@@ -467,9 +517,9 @@ public class GeneBankFlatParser {
                                 cds.getGeneBankCOG().add(cog);
                             }
                         }
-                        geneBank.getGeneBankCDSs().add(cds);
+                        geneBank.getGeneBankCDS().add(cds);
                     } else {
-                        GeneBankFeatures feature = new GeneBankFeatures();
+                        GeneBankFeature feature = new GeneBankFeature();
                         feature.setKeyName(key);
                         feature.setLocation(location);
                         if (map.containsKey(DB_XREF)) {
@@ -486,7 +536,7 @@ public class GeneBankFlatParser {
                         if (map.containsKey(GENE)) {
                             feature.setGene((String) map.get(GENE));
                         }
-                        geneBank.getGeneBankFeatureses().add(feature);
+                        geneBank.getGeneBankFeature().add(feature);
                     }
                 }
             }
@@ -550,15 +600,22 @@ public class GeneBankFlatParser {
                     reader.mark(1000000);
                 }
             } catch (IllegalStateException ex) {
-                VerbLogger.getInstance().log(this.getClass(), line);
+                VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
                 VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
-                ex.printStackTrace(System.out);
-                System.exit(0);
+                DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                DataSetPersistence.getInstance().updateDataSet();
+                WIDFactory.getInstance().updateWIDTable();
+                System.exit(-1);
             }
         } catch (IOException ex) {
+            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
             VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
-            ex.printStackTrace(System.out);
-            System.exit(0);
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            System.exit(-1);
         }
         return map;
     }

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +17,7 @@ import javax.persistence.NoResultException;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
+import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.gene.gene.controller.GeneInfoJpaController;
 import org.jbiowhpersistence.datasets.gene.gene.entities.GeneInfo;
 import org.jbiowhpersistence.datasets.gene.genebank.controller.GeneBankCDSJpaController;
@@ -27,7 +29,8 @@ import org.jbiowhpersistence.utils.entitymanager.JBioWHPersistence;
 /**
  * This class is
  *
- * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-05-29 11:24:54 +0200 (Wed, 29 May 2013) $ $LastChangedRevision: 591 $
+ * $Author: r78v10a07@gmail.com $ $LastChangedDate: 2013-05-29 11:24:54 +0200
+ * (Wed, 29 May 2013) $ $LastChangedRevision: 591 $
  *
  * @since May 13, 2013
  */
@@ -75,7 +78,13 @@ public class GeneBankUpdateFlatParser extends GeneBankFlatParser {
                                 + String.format("%.2f", ((float) ((long) (System.currentTimeMillis() - gTime) / 1000))) + " s");
                     }
                 } catch (IOException ex) {
+                    VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
                     VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                    DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                    DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                    DataSetPersistence.getInstance().updateDataSet();
+                    WIDFactory.getInstance().updateWIDTable();
+                    System.exit(-1);
                 }
 
                 String strTime = String.format("%.2f", ((float) ((((long) (System.currentTimeMillis() - startTime) / 1000)) / i) * (files.size() - i) / 3600.0));
@@ -85,7 +94,6 @@ public class GeneBankUpdateFlatParser extends GeneBankFlatParser {
     }
 
     private void parser(InputStream in, String fileName) {
-
 
         try {
             parm.clear();
@@ -101,7 +109,7 @@ public class GeneBankUpdateFlatParser extends GeneBankFlatParser {
 
             while ((geneBank = readGeneBankEntry(reader, fileName)) != null) {
                 count++;
-                VerbLogger.getInstance().log(this.getClass(), count + " " + geneBank.getGi() + " CDSs: " + geneBank.getGeneBankCDSs().size() + " " + fileName);
+                VerbLogger.getInstance().log(this.getClass(), count + " " + geneBank.getGi() + " CDSs: " + geneBank.getGeneBankCDS().size() + " " + fileName);
                 parm.clear();
                 parm.put("locusName", geneBank.getLocusName());
                 try {
@@ -111,12 +119,12 @@ public class GeneBankUpdateFlatParser extends GeneBankFlatParser {
                     EntityManager em = cController.getEntityManager();
                     try {
                         em.getTransaction().begin();
-                        for (GeneBankCDS c : fromDB.getGeneBankCDSs()) {
+                        for (GeneBankCDS c : fromDB.getGeneBankCDS()) {
                             c = em.getReference(GeneBankCDS.class, c.getWid());
                             c.getWid();
                             GeneBank IntoCDS = c.getGeneBank();
                             if (IntoCDS != null) {
-                                IntoCDS.getGeneBankCDSs().remove(c);
+                                IntoCDS.getGeneBankCDS().remove(c);
                                 IntoCDS = em.merge(IntoCDS);
                                 c.setGeneBank(null);
                             }
@@ -129,7 +137,7 @@ public class GeneBankUpdateFlatParser extends GeneBankFlatParser {
                             em.close();
                         }
                     }
-                    for (GeneBankCDS c : geneBank.getGeneBankCDSs()) {
+                    for (GeneBankCDS c : geneBank.getGeneBankCDS()) {
                         parm.clear();
                         parm.put("proteinGi", (long) c.getProteinGi());
                         c.setGeneBankWID(fromDB.getWid());
@@ -139,10 +147,10 @@ public class GeneBankUpdateFlatParser extends GeneBankFlatParser {
                         }
                         cController.create(c);
                     }
-                    geneBank.setGeneBankCDSs(new HashSet<GeneBankCDS>());
+                    geneBank.setGeneBankCDS(new HashSet<GeneBankCDS>());
                     controller.edit(geneBank);
                 } catch (NoResultException ex) {
-                    for (GeneBankCDS c : geneBank.getGeneBankCDSs()) {
+                    for (GeneBankCDS c : geneBank.getGeneBankCDS()) {
                         parm.clear();
                         parm.put("proteinGi", (long) c.getProteinGi());
                         List<GeneInfo> geneInfos = gController.useNamedQuery("GeneInfo.findByProteinGi", parm);
@@ -162,9 +170,11 @@ public class GeneBankUpdateFlatParser extends GeneBankFlatParser {
         } catch (Exception ex) {
             VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
             VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
-            VerbLogger.getInstance().log(this.getClass(), "Error: " + ex.toString());
-            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().getInitialLevel());
-            System.exit(1);
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            System.exit(-1);
         }
 
     }

@@ -12,10 +12,10 @@ import javax.xml.bind.Unmarshaller;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.pathway.kegg.kgml.PathwayPrintOnTSVFile;
 import org.jbiowhparser.datasets.pathway.kegg.kgml.xml.Pathway;
 import org.jbiowhparser.datasets.pathway.kegg.links.KEGGLinks;
@@ -33,7 +33,7 @@ import org.jbiowhpersistence.datasets.pathway.kegg.KEGGTables;
  *
  * @since Oct 30, 2011
  */
-public class KEGGParser extends ParserBasic implements ParseFactory {
+public class KEGGParser extends ParserFactory implements JBioWHParser {
 
     @Override
     public void runLoader() throws SQLException {
@@ -41,7 +41,7 @@ public class KEGGParser extends ParserBasic implements ParseFactory {
         WIDFactory.getInstance().getWIDFromDataBase();
 
         ParseFiles.getInstance().start(KEGGTables.getInstance().getTables(), DataSetPersistence.getInstance().getTempdir());
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         File dir = new File(DataSetPersistence.getInstance().getDirectory());
 
@@ -52,72 +52,67 @@ public class KEGGParser extends ParserBasic implements ParseFactory {
             }
         }
 
-        if (dir.isDirectory()) {
-            KEGGParserFile parser;
-            ArrayList<String> keggDirs = new ArrayList<>();
-            keggDirs.add("gene");
-            keggDirs.add("kgml");
-            keggDirs.add("ligand");
-            ArrayList<String> ligandDir = new ArrayList<>();
-            ligandDir.add("enzyme");
-            ligandDir.add("reaction");
-            ligandDir.add("compound");
-            ligandDir.add("glycan");
-            ligandDir.add("rpair");
+        try {
+            if (dir.isDirectory()) {
+                KEGGParserFile parser;
+                ArrayList<String> keggDirs = new ArrayList<>();
+                keggDirs.add("gene");
+                keggDirs.add("kgml");
+                keggDirs.add("ligand");
+                ArrayList<String> ligandDir = new ArrayList<>();
+                ligandDir.add("enzyme");
+                ligandDir.add("reaction");
+                ligandDir.add("compound");
+                ligandDir.add("glycan");
+                ligandDir.add("rpair");
 
-            for (String value : keggDirs) {
-                switch (value) {
-                    case "ligand": {
-                        for (String inValue : ligandDir) {
-                            try {
+                for (String value : keggDirs) {
+                    switch (value) {
+                        case "ligand": {
+                            for (String inValue : ligandDir) {
                                 parser = new KEGGParserFile(inValue, DataSetPersistence.getInstance().getDirectory() + "ligand/" + inValue);
                                 runKEGGParserFactory(parser);
-                            } catch (FileNotFoundException ex) {
-                                VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
-                                VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
-                                System.exit(1);
                             }
+                            break;
                         }
-                        break;
-                    }
-                    case "gene": {
-                        File dirGene = new File(DataSetPersistence.getInstance().getDirectory() + "gene/");
-                        if (dirGene.isDirectory()) {
-                            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dirGene);
-                            for (File file : files) {
-                                try {
+                        case "gene": {
+                            File dirGene = new File(DataSetPersistence.getInstance().getDirectory() + "gene/");
+                            if (dirGene.isDirectory()) {
+                                List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dirGene);
+                                for (File file : files) {
                                     parser = new KEGGParserFile("gene", file);
                                     runKEGGParserFactory(parser);
-                                } catch (FileNotFoundException ex) {
-                                    VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
                                 }
                             }
+                            break;
                         }
-                        break;
-                    }
-                    case "kgml": {
-                        File dirKGML = new File(DataSetPersistence.getInstance().getDirectory() + "kgml/");
-                        if (dirKGML.isDirectory()) {
-                            List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dirKGML, new String[]{"xml"});
-                            for (File file : files) {
-                                try {
+                        case "kgml": {
+                            File dirKGML = new File(DataSetPersistence.getInstance().getDirectory() + "kgml/");
+                            if (dirKGML.isDirectory()) {
+                                List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dirKGML, new String[]{"xml"});
+                                for (File file : files) {
                                     VerbLogger.getInstance().log(this.getClass(), "Parsing KGML file: " + file);
                                     JAXBContext jc = JAXBContext.newInstance("org.jbiowhparser.datasets.pathway.kegg.kgml.xml");
                                     Unmarshaller unmarshaller = jc.createUnmarshaller();
-
                                     Pathway pathway = (Pathway) unmarshaller.unmarshal(file);
                                     if (pathway != null) {
                                         PathwayPrintOnTSVFile.getInstance().printPathwayOnTSVFile(pathway);
                                     }
-                                } catch (JAXBException ex) {
-                                    VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
                                 }
                             }
+                            break;
                         }
-                        break;
                     }
                 }
             }
+        } catch (FileNotFoundException | JAXBException ex) {
+            VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+            DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+            DataSetPersistence.getInstance().getDataset().setStatus("Error");
+            DataSetPersistence.getInstance().updateDataSet();
+            WIDFactory.getInstance().updateWIDTable();
+            System.exit(-1);
         }
 
         ParseFiles.getInstance().closeAllPrintWriter();
@@ -153,7 +148,7 @@ public class KEGGParser extends ParserBasic implements ParseFactory {
     }
 
     private void sqlRelationshipReaction() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         VerbLogger.getInstance().log(this.getClass(), "Creating Reaction relationships");
 
         whdbmsFactory.executeUpdate("insert into "
@@ -214,7 +209,7 @@ public class KEGGParser extends ParserBasic implements ParseFactory {
     }
 
     private void sqlRelationshipEnzyme() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         VerbLogger.getInstance().log(this.getClass(), "Creating Enzyme relationships");
 
         whdbmsFactory.executeUpdate("ALTER TABLE " + KEGGTables.getInstance().KEGGENZYMECLASS + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
@@ -279,7 +274,7 @@ public class KEGGParser extends ParserBasic implements ParseFactory {
     }
 
     private void sqlRelationshipGlycan() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         VerbLogger.getInstance().log(this.getClass(), "Creating Glycan relationships");
 
         whdbmsFactory.executeUpdate("ALTER TABLE " + KEGGTables.getInstance().KEGGGLYCANCLASS + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
@@ -306,7 +301,7 @@ public class KEGGParser extends ParserBasic implements ParseFactory {
     }
 
     private void sqlRelationshipRPair() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         VerbLogger.getInstance().log(this.getClass(), "Creating RPair relationships");
 
         whdbmsFactory.executeUpdate("insert into "
@@ -331,7 +326,7 @@ public class KEGGParser extends ParserBasic implements ParseFactory {
     }
 
     private void sqlRelationshipGene() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         VerbLogger.getInstance().log(this.getClass(), "Creating Gene relationships");
 
         whdbmsFactory.executeUpdate("insert into "
@@ -347,7 +342,7 @@ public class KEGGParser extends ParserBasic implements ParseFactory {
     }
 
     private void sqlRelationshipCompound() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         VerbLogger.getInstance().log(this.getClass(), "Creating Compound relationships");
 
         whdbmsFactory.executeUpdate("insert into "

@@ -6,10 +6,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Date;
 import java.util.zip.GZIPInputStream;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ParseFiles;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
+import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.protgroup.cog.COGTables;
 
 /**
@@ -45,11 +47,23 @@ public class COGMemberIdParser {
                         }
                     } catch (IllegalStateException ex) {
                         VerbLogger.getInstance().log(this.getClass(), "Problem on line: " + line);
-                        ex.printStackTrace(System.err);
+                        VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+                        VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                        DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                        DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                        DataSetPersistence.getInstance().updateDataSet();
+                        WIDFactory.getInstance().updateWIDTable();
+                        System.exit(-1);
                     }
                 }
             } catch (IOException ex) {
+                VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
                 VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                DataSetPersistence.getInstance().updateDataSet();
+                WIDFactory.getInstance().updateWIDTable();
+                System.exit(-1);
             }
         }
     }

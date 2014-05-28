@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.List;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.fileformats.sql.JBioWHSQLParser;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
+import org.jbiowhdbms.dbms.JBioWHDBMS;
 import org.jbiowhdbms.dbms.mysql.WHMySQL;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.domain.pfam.PFamTables;
@@ -20,7 +20,7 @@ import org.jbiowhpersistence.datasets.domain.pfam.PFamTables;
  */
 public class PFamSQLReader {
 
-    public void loadSQLScript(WHDBMSFactory wHDBMSFactory) {
+    public void loadSQLScript(JBioWHDBMS wHDBMSFactory) {
         if (wHDBMSFactory instanceof WHMySQL) {
             InputStream inp = ClassLoader.getSystemClassLoader().getResourceAsStream(PFamTables.getInstance().MySQLSCRIPT);
             List<String> lineList = JBioWHSQLParser.getInstance().getAllSQL(inp);

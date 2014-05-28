@@ -10,7 +10,7 @@ import java.sql.SQLException;
  * $LastChangedRevision: 322 $
  * @since Jun 18, 2011
  */
-public interface ParseFactory {
+public interface JBioWHParser {
 
     /**
      * Run the desired parser

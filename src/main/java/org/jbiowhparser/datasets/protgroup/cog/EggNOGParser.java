@@ -5,10 +5,10 @@ import java.sql.SQLException;
 import java.util.Date;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.protgroup.cog.files.COGFunParser;
 import org.jbiowhparser.datasets.protgroup.cog.files.EggNOGParserFiles;
 import org.jbiowhparser.datasets.protgroup.cog.links.COGLinks;
@@ -23,13 +23,13 @@ import org.jbiowhpersistence.datasets.protgroup.cog.COGTables;
  *
  * @since Jan 8, 2014
  */
-public class EggNOGParser extends ParserBasic implements ParseFactory {
+public class EggNOGParser extends ParserFactory implements JBioWHParser {
 
     @Override
     public void runLoader() throws SQLException {
         DataSetPersistence.getInstance().insertDataSet();
         WIDFactory.getInstance().getWIDFromDataBase();
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
         File dir = new File(DataSetPersistence.getInstance().getDirectory());
         
         if (DataSetPersistence.getInstance().isDroptables()) {

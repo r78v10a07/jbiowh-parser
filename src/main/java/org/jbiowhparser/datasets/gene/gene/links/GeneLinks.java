@@ -1,7 +1,7 @@
 package org.jbiowhparser.datasets.gene.gene.links;
 
 import java.sql.SQLException;
-import org.jbiowhdbms.dbms.JBioWHDBMS;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhparser.datasets.gene.genbank.links.GeneBankGeneLink;
 import org.jbiowhparser.datasets.gene.genome.links.GeneGenePTTLink;
 import org.jbiowhparser.datasets.pathway.kegg.links.KEGGPathwayGeneInfoLink;
@@ -76,7 +76,7 @@ public class GeneLinks {
         /*
          * Create the GeneBank CDS-Gene realtionship table
          */
-        JBioWHDBMS.getInstance().getWhdbmsFactory().executeUpdate("TRUNCATE TABLE " + GeneBankTables.GENEBANKCDS_HAS_GENEINFO);
+        JBioWHDBMSSingleton.getInstance().getWhdbmsFactory().executeUpdate("TRUNCATE TABLE " + GeneBankTables.GENEBANKCDS_HAS_GENEINFO);
         GeneBankGeneLink.getInstance().runLink();
 
         /*

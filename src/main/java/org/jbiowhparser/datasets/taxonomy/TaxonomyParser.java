@@ -1,14 +1,25 @@
 package org.jbiowhparser.datasets.taxonomy;
 
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.Date;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ParseFiles;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.taxonomy.links.TaxonomyLinks;
+import org.jbiowhparser.utils.FTPFacade;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.taxonomy.TaxonomyTables;
@@ -21,7 +32,9 @@ import org.jbiowhpersistence.datasets.taxonomy.TaxonomyTables;
  *
  * @since Jun 18, 2011
  */
-public class TaxonomyParser extends ParserBasic implements ParseFactory {
+public class TaxonomyParser extends ParserFactory implements JBioWHParser {
+
+    final static int BUFFER = 2048;
 
     /**
      * Run the Taxonomy Parser
@@ -32,24 +45,64 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
     public void runLoader() throws SQLException {
         DataSetPersistence.getInstance().insertDataSet();
         WIDFactory.getInstance().getWIDFromDataBase();
-        
+
         ParseFiles.getInstance().start(TaxonomyTables.getInstance().getTables(), DataSetPersistence.getInstance().getTempdir());
-        
+
+        if (DataSetPersistence.getInstance().isonlineFTP()) {
+            FTPFacade ftp = new FTPFacade(DataSetPersistence.getInstance().getOnlineSite(),
+                    DataSetPersistence.getInstance().getOnlineUser(),
+                    DataSetPersistence.getInstance().getOnlinePasswd());
+
+            try {
+                int index = DataSetPersistence.getInstance().getOnlinePath().lastIndexOf("/");
+                try (OutputStream tmpFile = new FileOutputStream(DataSetPersistence.getInstance().getTempdir() + DataSetPersistence.getInstance().getOnlinePath().substring(index + 1))) {
+                    ftp.getFtpClient().retrieveFile(DataSetPersistence.getInstance().getOnlinePath(), tmpFile);
+                }
+                InputStream in = new FileInputStream(DataSetPersistence.getInstance().getTempdir() + DataSetPersistence.getInstance().getOnlinePath().substring(index + 1));
+                ZipArchiveInputStream archiveInput = (ZipArchiveInputStream) new ArchiveStreamFactory().createArchiveInputStream("zip", in);
+                ZipArchiveEntry entry;
+                while ((entry = archiveInput.getNextZipEntry()) != null) {
+                    if (!entry.isDirectory()) {
+                        int count;
+                        byte data[] = new byte[BUFFER];
+                        try (FileOutputStream fos = new FileOutputStream(DataSetPersistence.getInstance().getTempdir() + entry.getName()); BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER)) {
+                            while ((count = archiveInput.read(data, 0, BUFFER)) != -1) {
+                                dest.write(data, 0, count);
+                            }
+                        }
+                    }
+                }
+                DataSetPersistence.getInstance().setDirectory(DataSetPersistence.getInstance().getTempdir());
+                delete = true;
+            } catch (IOException | ArchiveException ex) {
+                VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+                VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                DataSetPersistence.getInstance().updateDataSet();
+                WIDFactory.getInstance().updateWIDTable();
+                System.exit(-1);
+            }
+            ftp.close();
+        }
+
         insertDivision();
         insertGencode();
         insertNodes();
         insertNames();
         insertCitations();
-        
+
         if (DataSetPersistence.getInstance().isRunlinks()) {
             TaxonomyLinks.getInstance().runLink();
         }
-        
+
         DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
         DataSetPersistence.getInstance().getDataset().setStatus("Inserted");
         DataSetPersistence.getInstance().updateDataSet();
         WIDFactory.getInstance().updateWIDTable();
         ParseFiles.getInstance().end();
+
+        cleanTmpDir();
     }
 
     /**
@@ -57,33 +110,33 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
      * Division Table. After insertion the DivisionTemp Table is truncated.
      */
     private void insertDivision() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
-        
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
+
         if (DataSetPersistence.getInstance().isDroptables()) {
             VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().TAXONOMYDIVISION);
             whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().TAXONOMYDIVISION);
         }
-        
+
         VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().DIVISIONTEMP);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().DIVISIONTEMP);
-        
-        VerbLogger.getInstance().log(this.getClass(), "Inserting the " + TaxonomyTables.getInstance().DIVISIONFILE + " file");
-        
-        whdbmsFactory.loadTSVFile(TaxonomyTables.getInstance().DIVISIONTEMP, DataSetPersistence.getInstance().getDirectory() + TaxonomyTables.getInstance().DIVISIONFILE,
+
+        VerbLogger.getInstance().log(this.getClass(), "Inserting the " + TaxonomyTables.DIVISIONFILE + " file");
+
+        whdbmsFactory.loadTSVFile(TaxonomyTables.getInstance().DIVISIONTEMP, DataSetPersistence.getInstance().getDirectory() + TaxonomyTables.DIVISIONFILE,
                 " FIELDS TERMINATED BY '|' ENCLOSED BY '\\t' ESCAPED BY '\\\\'");
-        
+
         whdbmsFactory.executeUpdate("ALTER TABLE " + TaxonomyTables.getInstance().TAXONOMYDIVISION + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
-        
+
         whdbmsFactory.executeUpdate("INSERT INTO "
                 + TaxonomyTables.getInstance().TAXONOMYDIVISION
                 + " (id,Code,Name,Comment)"
                 + "select id,Code,Name,Comment"
                 + " from "
                 + TaxonomyTables.getInstance().DIVISIONTEMP);
-        
+
         WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
                 + TaxonomyTables.getInstance().TAXONOMYDIVISION, "WID"));
-        
+
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().DIVISIONTEMP);
     }
 
@@ -92,33 +145,33 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
      * GenCode Table. After insertion the GenCodeTemp Table is truncate.
      */
     private void insertGencode() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
-        
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
+
         if (DataSetPersistence.getInstance().isDroptables()) {
             VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().TAXONOMYGENCODE);
             whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().TAXONOMYGENCODE);
         }
-        
+
         VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().GENCODETEMP);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().GENCODETEMP);
-        
-        VerbLogger.getInstance().log(this.getClass(), "Inserting the " + TaxonomyTables.getInstance().GENCODEFILE + " file");
-        
-        whdbmsFactory.loadTSVFile(TaxonomyTables.getInstance().GENCODETEMP, DataSetPersistence.getInstance().getDirectory() + TaxonomyTables.getInstance().GENCODEFILE,
+
+        VerbLogger.getInstance().log(this.getClass(), "Inserting the " + TaxonomyTables.GENCODEFILE + " file");
+
+        whdbmsFactory.loadTSVFile(TaxonomyTables.getInstance().GENCODETEMP, DataSetPersistence.getInstance().getDirectory() + TaxonomyTables.GENCODEFILE,
                 " FIELDS TERMINATED BY '|' ENCLOSED BY '\\t' ESCAPED BY '\\\\'");
-        
+
         whdbmsFactory.executeUpdate("ALTER TABLE " + TaxonomyTables.getInstance().TAXONOMYGENCODE + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
-        
+
         whdbmsFactory.executeUpdate("INSERT INTO "
                 + TaxonomyTables.getInstance().TAXONOMYGENCODE
                 + "(GenCodeId,Abbreviation,Name,Code,Start) "
                 + "select GenCodeId,Abbreviation,Name,Code,Start"
                 + " from "
                 + TaxonomyTables.getInstance().GENCODETEMP);
-        
+
         WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
                 + TaxonomyTables.getInstance().TAXONOMYGENCODE, "WID"));
-        
+
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().GENCODETEMP);
     }
 
@@ -127,23 +180,23 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
      * Taxonomy Table. After insertion the Nodes Table is truncated
      */
     private void insertNodes() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
-        
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
+
         if (DataSetPersistence.getInstance().isDroptables()) {
             VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().TAXONOMY);
             whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().TAXONOMY);
         }
-        
+
         VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().NODES);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().NODES);
-        
-        VerbLogger.getInstance().log(this.getClass(), "Inserting the " + TaxonomyTables.getInstance().NODESFILE + " file");
-        
-        whdbmsFactory.loadTSVFile(TaxonomyTables.getInstance().NODES, DataSetPersistence.getInstance().getDirectory() + TaxonomyTables.getInstance().NODESFILE,
+
+        VerbLogger.getInstance().log(this.getClass(), "Inserting the " + TaxonomyTables.NODESFILE + " file");
+
+        whdbmsFactory.loadTSVFile(TaxonomyTables.getInstance().NODES, DataSetPersistence.getInstance().getDirectory() + TaxonomyTables.NODESFILE,
                 " FIELDS TERMINATED BY '|' ENCLOSED BY '\\t' ESCAPED BY '\\\\'");
-        
+
         whdbmsFactory.executeUpdate("ALTER TABLE " + TaxonomyTables.getInstance().TAXONOMY + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
-        
+
         whdbmsFactory.executeUpdate("INSERT INTO "
                 + TaxonomyTables.getInstance().TAXONOMY
                 + "(TaxId,ParentTaxId,Rank,EMBLCode,TaxonomyDivision_WID,"
@@ -162,10 +215,10 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
                 + " g on g.GenCodeId = n.genetic inner join "
                 + TaxonomyTables.getInstance().TAXONOMYGENCODE
                 + " g1 on g1.GenCodeId = n.mitochondrial");
-        
+
         WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
                 + TaxonomyTables.getInstance().TAXONOMY, "WID"));
-        
+
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().NODES);
     }
 
@@ -174,26 +227,26 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
      * Table. After insertion the DivisionTemp Table is drooped.
      */
     private void insertNames() throws SQLException {
-        
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
-        
+
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
+
         if (DataSetPersistence.getInstance().isDroptables()) {
             VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().TAXONOMYSYNONYMNAMECLASS);
             whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().TAXONOMYSYNONYMNAMECLASS);
             VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().TAXONOMYSYNONYM);
             whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().TAXONOMYSYNONYM);
         }
-        
+
         VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().NAMES);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().NAMES);
-        
-        VerbLogger.getInstance().log(this.getClass(), "Inserting the " + TaxonomyTables.getInstance().NAMESFILE + " file");
-        
-        whdbmsFactory.loadTSVFile(TaxonomyTables.getInstance().NAMES, DataSetPersistence.getInstance().getDirectory() + TaxonomyTables.getInstance().NAMESFILE,
+
+        VerbLogger.getInstance().log(this.getClass(), "Inserting the " + TaxonomyTables.NAMESFILE + " file");
+
+        whdbmsFactory.loadTSVFile(TaxonomyTables.getInstance().NAMES, DataSetPersistence.getInstance().getDirectory() + TaxonomyTables.NAMESFILE,
                 " FIELDS TERMINATED BY '|' ENCLOSED BY '\\t' ESCAPED BY '\\\\'");
-        
+
         whdbmsFactory.executeUpdate("ALTER TABLE " + TaxonomyTables.getInstance().TAXONOMYSYNONYMNAMECLASS + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
-        
+
         whdbmsFactory.executeUpdate("INSERT INTO "
                 + TaxonomyTables.getInstance().TAXONOMYSYNONYMNAMECLASS
                 + "(NameClass) "
@@ -201,10 +254,10 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
                 + " from "
                 + TaxonomyTables.getInstance().NAMES
                 + " group by name_class");
-        
+
         WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
                 + TaxonomyTables.getInstance().TAXONOMYSYNONYMNAMECLASS, "WID"));
-        
+
         whdbmsFactory.executeUpdate("INSERT IGNORE INTO "
                 + TaxonomyTables.getInstance().TAXONOMYSYNONYM
                 + "(Taxonomy_WID,Synonym,TaxonomySynonymNameClass_WID) "
@@ -216,7 +269,7 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
                 + " t on t.TaxId = n.tax_id inner join "
                 + TaxonomyTables.getInstance().TAXONOMYSYNONYMNAMECLASS
                 + " m on m.NameClass = n.name_class");
-        
+
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().NAMES);
     }
 
@@ -225,9 +278,9 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
      * After insertion the GenCodeTemp Table is drooped.
      */
     private void insertCitations() throws SQLException {
-        
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
-        
+
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
+
         if (DataSetPersistence.getInstance().isDroptables()) {
             VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().TAXONOMYUNPARSECITATION);
             whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().TAXONOMYUNPARSECITATION);
@@ -236,19 +289,19 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
             VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().TAXONOMYPMID);
             whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().TAXONOMYPMID);
         }
-        
+
         VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().NCBICITATIONTEMP);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().NCBICITATIONTEMP);
         VerbLogger.getInstance().log(this.getClass(), "Truncating table: " + TaxonomyTables.getInstance().CITTAX);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().CITTAX);
-        
-        VerbLogger.getInstance().log(this.getClass(), "Inserting the " + TaxonomyTables.getInstance().CITATIONSFILE + " file");
-        
-        whdbmsFactory.loadTSVFile(TaxonomyTables.getInstance().NCBICITATIONTEMP, DataSetPersistence.getInstance().getDirectory() + TaxonomyTables.getInstance().CITATIONSFILE,
+
+        VerbLogger.getInstance().log(this.getClass(), "Inserting the " + TaxonomyTables.CITATIONSFILE + " file");
+
+        whdbmsFactory.loadTSVFile(TaxonomyTables.getInstance().NCBICITATIONTEMP, DataSetPersistence.getInstance().getDirectory() + TaxonomyTables.CITATIONSFILE,
                 " FIELDS TERMINATED BY '|' ENCLOSED BY '\\t' ESCAPED BY '\\\\'");
-        
+
         splitCitId();
-        
+
         whdbmsFactory.executeUpdate("ALTER TABLE "
                 + TaxonomyTables.getInstance().TAXONOMYUNPARSECITATION
                 + " AUTO_INCREMENT=" + WIDFactory.getInstance().getWid());
@@ -259,10 +312,10 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
                 + " from "
                 + TaxonomyTables.getInstance().NCBICITATIONTEMP
                 + " where medline_id = 0");
-        
+
         WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
                 + TaxonomyTables.getInstance().TAXONOMYUNPARSECITATION, "WID"));
-        
+
         whdbmsFactory.executeUpdate("insert ignore into "
                 + TaxonomyTables.getInstance().TAXONOMY_HAS_TAXONOMYUNPARSECITATION
                 + " (Taxonomy_WID, TaxonomyUnParseCitation_WID) "
@@ -276,7 +329,7 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
                 + TaxonomyTables.getInstance().TAXONOMYUNPARSECITATION
                 + " u on "
                 + "u.CitId = c.cit_id");
-        
+
         whdbmsFactory.executeUpdate("insert ignore into "
                 + TaxonomyTables.getInstance().TAXONOMYPMID
                 + "(Taxonomy_WID,PMID) "
@@ -290,10 +343,10 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
                 + TaxonomyTables.getInstance().NCBICITATIONTEMP
                 + " n on "
                 + "n.cit_id = c.cit_id where n.medline_id != 0");
-        
+
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().NCBICITATIONTEMP);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + TaxonomyTables.getInstance().CITTAX);
-        
+
     }
 
     /**
@@ -306,19 +359,19 @@ public class TaxonomyParser extends ParserBasic implements ParseFactory {
      *
      */
     private void splitCitId() {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
-        
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
+
         whdbmsFactory.splitField(ParseFiles.getInstance().getPrintWriterFromName(TaxonomyTables.getInstance().CITTAX),
                 "select cit_id,taxid_list from "
                 + TaxonomyTables.getInstance().NCBICITATIONTEMP
                 + " where taxid_list!= ''",
                 "cit_id", "taxid_list", " ");
-        
+
         VerbLogger.getInstance().log(this.getClass(), "Inserting the " + TaxonomyTables.getInstance().CITTAX + " file");
         ParseFiles.getInstance().getPrintWriterFromName(TaxonomyTables.getInstance().CITTAX).close();
         whdbmsFactory.loadTSVFile(TaxonomyTables.getInstance().CITTAX, ParseFiles.getInstance().getFileAbsolutName(TaxonomyTables.getInstance().CITTAX));
     }
-    
+
     @Override
     public void runCleaner() throws SQLException {
         clean(TaxonomyTables.getInstance().getTables());

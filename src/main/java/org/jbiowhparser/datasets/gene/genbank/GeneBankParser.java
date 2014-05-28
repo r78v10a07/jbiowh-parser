@@ -3,10 +3,10 @@ package org.jbiowhparser.datasets.gene.genbank;
 import java.sql.SQLException;
 import java.util.Date;
 import org.jbiowhcore.logger.VerbLogger;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
-import org.jbiowhparser.ParseFactory;
-import org.jbiowhparser.ParserBasic;
+import org.jbiowhparser.JBioWHParser;
+import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.gene.genbank.files.GeneBankFlatParser;
 import org.jbiowhparser.datasets.gene.genbank.links.GeneBankLinks;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
@@ -21,13 +21,13 @@ import org.jbiowhpersistence.datasets.gene.genebank.GeneBankTables;
  *
  * @since Apr 30, 2013
  */
-public class GeneBankParser extends ParserBasic implements ParseFactory {
+public class GeneBankParser extends ParserFactory implements JBioWHParser {
 
     @Override
     public void runLoader() throws SQLException {
         DataSetPersistence.getInstance().insertDataSet();
         WIDFactory.getInstance().getWIDFromDataBase();
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         if (DataSetPersistence.getInstance().isDroptables()) {
             for (String table : GeneBankTables.getInstance().getTables()) {

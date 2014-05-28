@@ -1,8 +1,8 @@
 package org.jbiowhparser.datasets.protclust.links;
 
 import java.sql.SQLException;
+import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
-import org.jbiowhdbms.dbms.WHDBMSFactory;
 import org.jbiowhpersistence.datasets.protclust.UniRefTables;
 import org.jbiowhpersistence.datasets.protein.ProteinTables;
 
@@ -39,7 +39,7 @@ public class UniRefProteinLink {
      * @throws SQLException
      */
     public void runLink() throws SQLException {
-        WHDBMSFactory whdbmsFactory = JBioWHDBMS.getInstance().getWhdbmsFactory();
+        JBioWHDBMS whdbmsFactory = JBioWHDBMSSingleton.getInstance().getWhdbmsFactory();
 
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.UNIREFENTRY_HAS_PROTEIN);
         whdbmsFactory.executeUpdate("TRUNCATE TABLE " + UniRefTables.UNIREFMEMBER);

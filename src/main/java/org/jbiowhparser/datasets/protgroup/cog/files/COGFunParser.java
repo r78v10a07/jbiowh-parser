@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.regex.Matcher;
@@ -114,14 +115,32 @@ public class COGFunParser {
                         }
                     } catch (IllegalStateException ex) {
                         VerbLogger.getInstance().log(this.getClass(), "Problem on line: " + line);
-                        ex.printStackTrace(System.err);
+                        VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+                        VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                        DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                        DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                        DataSetPersistence.getInstance().updateDataSet();
+                        WIDFactory.getInstance().updateWIDTable();
+                        System.exit(-1);
                     } catch (Exception ex) {
                         VerbLogger.getInstance().log(this.getClass(), "Problem inserting the COGFuncClassGroup entity");
-                        ex.printStackTrace(System.err);
+                        VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
+                        VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                        DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                        DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                        DataSetPersistence.getInstance().updateDataSet();
+                        WIDFactory.getInstance().updateWIDTable();
+                        System.exit(-1);
                     }
                 }
             } catch (IOException ex) {
+                VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
                 VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+                DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
+                DataSetPersistence.getInstance().getDataset().setStatus("Error");
+                DataSetPersistence.getInstance().updateDataSet();
+                WIDFactory.getInstance().updateWIDTable();
+                System.exit(-1);
             }
         }
     }
