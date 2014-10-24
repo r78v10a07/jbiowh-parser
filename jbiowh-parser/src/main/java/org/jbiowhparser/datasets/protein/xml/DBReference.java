@@ -28,19 +28,19 @@ public class DBReference extends DBReferenceTags {
     private String id = null;
     private String evidence = null;
     private String key = null;
-    private final String GO = "Go";
-    private final String REFSEQ = "RefSeq";
-    private final String GENEID = "GeneId";
-    private final String PUBMED = "PubMed";
+    private final String GO = "GO";
+    private final String REFSEQ = "REFSEQ";
+    private final String GENEID = "GENEID";
+    private final String PUBMED = "PUBMED";
     private final String KEGG = "KEGG";
     private final String EC = "EC";
-    private final String BIOCYC = "BioCyc";
+    private final String BIOCYC = "BIOCYC";
     private final String PDB = "PDB";
     private final String DIP = "DIP";
     private final String MINT = "MINT";
-    private final String DRUGBANK = "DrugBank";
-    private final String PFAM = "Pfam";
-    private final String INTACT = "IntAct";
+    private final String DRUGBANK = "DRUGBANK";
+    private final String PFAM = "PFAM";
+    private final String INTACT = "INTACT";
 
     /**
      * This constructor initialize the WH file manager and the WH DataSet
@@ -71,14 +71,14 @@ public class DBReference extends DBReferenceTags {
             open = false;
 
             if (print) {
-                switch (type) {
+                switch (type.toUpperCase()) {
                     case GO:
                         ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINGOTEMP, ProteinWID, "\t");
                         ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINGOTEMP, id, "\n");
                         break;
                     case REFSEQ:
                         ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINREFSEQTEMP, ProteinWID, "\t");
-                        if (id.indexOf(".") != -1) {
+                        if (id.contains(".")) {
                             ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINREFSEQTEMP, id.substring(0, id.indexOf(".")), "\n");
                         } else {
                             ParseFiles.getInstance().printOnTSVFile(ProteinTables.getInstance().PROTEINREFSEQTEMP, id, "\n");
