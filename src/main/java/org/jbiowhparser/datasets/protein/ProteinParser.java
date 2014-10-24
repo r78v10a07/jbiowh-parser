@@ -114,7 +114,7 @@ public class ProteinParser extends ParserFactory implements JBioWHParser {
                 + " group by Id");
 
         whdbmsFactory.enableKeys(ProteinTables.getInstance().PROTEINKEYWORD);
-
+                
         WIDFactory.getInstance().setWid(whdbmsFactory.getLongColumnLabel("select MAX(WID) + 1 as WID from "
                 + ProteinTables.getInstance().PROTEINKEYWORD, "WID"));
 

@@ -3,13 +3,17 @@ package org.jbiowhparser.datasets.drug.drugbank;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.jbiowhcore.logger.VerbLogger;
 import org.jbiowhcore.utility.utils.ExploreDirectory;
 import org.jbiowhcore.utility.utils.ParseFiles;
@@ -17,13 +21,13 @@ import org.jbiowhdbms.dbms.JBioWHDBMSSingleton;
 import org.jbiowhdbms.dbms.JBioWHDBMS;
 import org.jbiowhparser.JBioWHParser;
 import org.jbiowhparser.ParserFactory;
+import org.jbiowhparser.datasets.drug.drugbank.jaxb.DrugType;
+import org.jbiowhparser.datasets.drug.drugbank.jaxb.DrugbankDrugIdType;
 import org.jbiowhparser.datasets.drug.drugbank.links.DrugBankLinks;
-import org.jbiowhparser.datasets.drug.drugbank.xml.DrugBankDefaultHandler;
-import org.jbiowhparser.datasets.drug.drugbank.xml.Drugs;
+import org.jbiowhparser.datasets.drug.drugbank.utility.DrugBankPrint;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
 import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 import org.jbiowhpersistence.datasets.drug.drugbank.DrugBankTables;
-import org.xml.sax.SAXException;
 
 /**
  * This class is the DrugBank Parser
@@ -35,6 +39,8 @@ import org.xml.sax.SAXException;
  */
 public class DrugBankParser extends ParserFactory implements JBioWHParser {
 
+    private long WID = 0;
+
     /**
      * Run the DrugBank Parser
      *
@@ -42,7 +48,6 @@ public class DrugBankParser extends ParserFactory implements JBioWHParser {
      */
     @Override
     public void runLoader() throws SQLException {
-        SAXParser saxParser;
 
         DataSetPersistence.getInstance().insertDataSet();
         WIDFactory.getInstance().getWIDFromDataBase();
@@ -60,31 +65,36 @@ public class DrugBankParser extends ParserFactory implements JBioWHParser {
         }
 
         try {
-            Drugs drugs = new Drugs();
-            SAXParserFactory factory = SAXParserFactory.newInstance();
             if (dir.isDirectory()) {
                 List<File> files = ExploreDirectory.getInstance().extractFilesPathFromDir(dir, new String[]{"xml", ".xml.gz"});
                 for (File file : files) {
-                    saxParser = factory.newSAXParser();
-                    if (file.isFile()) {
+                    InputStream in;
+                    if (file.exists() && file.isFile()) {
                         if (file.getCanonicalPath().endsWith(".gz")) {
-                            saxParser.parse(new GZIPInputStream(new FileInputStream(file)), new DrugBankDefaultHandler(drugs));
+                            in = new GZIPInputStream(new FileInputStream(file));
                         } else {
-                            saxParser.parse(file, new DrugBankDefaultHandler(drugs));
+                            in = new FileInputStream(file);
                         }
+                        VerbLogger.getInstance().log(this.getClass(), "Parsing OrthoXML file: " + file);
+                        parseDrugBank(in);
+                        in.close();
                     }
                 }
             } else {
-                saxParser = factory.newSAXParser();
-
-                if (DataSetPersistence.getInstance().getDirectory().endsWith(".gz")) {
-                    saxParser.parse(new GZIPInputStream(new FileInputStream(DataSetPersistence.getInstance().getDirectory())), new DrugBankDefaultHandler(drugs));
-                } else {
-                    saxParser.parse(new File(DataSetPersistence.getInstance().getDirectory()), new DrugBankDefaultHandler(drugs));
+                InputStream in;
+                File file = new File(DataSetPersistence.getInstance().getDirectory());
+                if (file.exists() && file.isFile()) {
+                    if (file.getCanonicalPath().endsWith(".gz")) {
+                        in = new GZIPInputStream(new FileInputStream(file));
+                    } else {
+                        in = new FileInputStream(file);
+                    }
+                    VerbLogger.getInstance().log(this.getClass(), "Parsing OrthoXML file: " + file);
+                    parseDrugBank(in);
+                    in.close();
                 }
-
             }
-        } catch (IOException | ParserConfigurationException | SAXException ex) {
+        } catch (IOException ex) {
             VerbLogger.getInstance().setLevel(VerbLogger.getInstance().ERROR);
             VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
             DataSetPersistence.getInstance().getDataset().setChangeDate(new Date());
@@ -93,7 +103,7 @@ public class DrugBankParser extends ParserFactory implements JBioWHParser {
             WIDFactory.getInstance().updateWIDTable();
             System.exit(-1);
         }
-
+        
         ParseFiles.getInstance().closeAllPrintWriter();
         whdbmsFactory.loadTSVTables(DrugBankTables.getInstance().getTables());
         VerbLogger.getInstance().log(this.getClass(), "Running SQL internal processing");
@@ -107,7 +117,7 @@ public class DrugBankParser extends ParserFactory implements JBioWHParser {
                 + DrugBankTables.getInstance().DRUGBANKPATENTSTEMP
                 + " group by Number,Country,Approved,Expires");
 
-        whdbmsFactory.executeUpdate("insert into "
+        whdbmsFactory.executeUpdate("insert IGNORE into "
                 + DrugBankTables.DRUGBANK_HAS_DRUGBANKPATENTS
                 + " (DrugBank_WID,DrugBankPatent_WID) select st.DrugBank_WID,s.WID from "
                 + DrugBankTables.getInstance().DRUGBANKPATENTSTEMP
@@ -171,5 +181,25 @@ public class DrugBankParser extends ParserFactory implements JBioWHParser {
     @Override
     public void runCleaner() throws SQLException {
         clean(DrugBankTables.getInstance().getTables());
+    }
+
+    private void parseDrugBank(InputStream in) {
+        try {
+            XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
+            Unmarshaller unmarshaller = JAXBContext.newInstance("org.jbiowhparser.datasets.drug.drugbank.jaxb").createUnmarshaller();
+
+            while (reader.hasNext()) {
+                reader.next();
+                if (reader.isStartElement()) {
+                    if (reader.getName().getLocalPart().equals("drug")) {
+                        DrugType drug = unmarshaller.unmarshal(reader, DrugType.class).getValue();
+                        new DrugBankPrint().print(drug);
+                    }
+                }
+            }
+            reader.close();
+        } catch (JAXBException | XMLStreamException ex) {
+            VerbLogger.getInstance().log(this.getClass(), ex.getMessage());
+        }
     }
 }
