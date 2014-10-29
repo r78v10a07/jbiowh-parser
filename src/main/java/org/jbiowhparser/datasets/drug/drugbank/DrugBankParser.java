@@ -22,7 +22,6 @@ import org.jbiowhdbms.dbms.JBioWHDBMS;
 import org.jbiowhparser.JBioWHParser;
 import org.jbiowhparser.ParserFactory;
 import org.jbiowhparser.datasets.drug.drugbank.jaxb.DrugType;
-import org.jbiowhparser.datasets.drug.drugbank.jaxb.DrugbankDrugIdType;
 import org.jbiowhparser.datasets.drug.drugbank.links.DrugBankLinks;
 import org.jbiowhparser.datasets.drug.drugbank.utility.DrugBankPrint;
 import org.jbiowhpersistence.datasets.DataSetPersistence;
@@ -38,8 +37,6 @@ import org.jbiowhpersistence.datasets.drug.drugbank.DrugBankTables;
  * @since Sep 9, 2011
  */
 public class DrugBankParser extends ParserFactory implements JBioWHParser {
-
-    private long WID = 0;
 
     /**
      * Run the DrugBank Parser

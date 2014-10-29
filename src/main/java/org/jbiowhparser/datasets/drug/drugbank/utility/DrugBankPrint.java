@@ -19,6 +19,7 @@ import org.jbiowhparser.datasets.drug.drugbank.jaxb.ManufacturerType;
 import org.jbiowhparser.datasets.drug.drugbank.jaxb.MixtureType;
 import org.jbiowhparser.datasets.drug.drugbank.jaxb.PackagerType;
 import org.jbiowhparser.datasets.drug.drugbank.jaxb.PatentType;
+import org.jbiowhparser.datasets.drug.drugbank.jaxb.PolypeptideType;
 import org.jbiowhparser.datasets.drug.drugbank.jaxb.PriceType;
 import org.jbiowhparser.datasets.drug.drugbank.jaxb.SequenceListType;
 import org.jbiowhparser.datasets.drug.drugbank.jaxb.SynonymType;
@@ -249,9 +250,16 @@ public class DrugBankPrint {
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTARGETS, inWID, "\t");
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTARGETS, WID, "\t");
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTARGETS, b.getId(), "\t");
-                ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTARGETS, b.getPosition(), "\t");
+                ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTARGETS, b.getName(), "\t");
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTARGETS, b.getKnownAction().value(), "\n");
-
+                if (b.getPolypeptide() != null && !b.getPolypeptide().isEmpty()) {
+                    for (PolypeptideType c : b.getPolypeptide()) {
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTARGETSPOLYPEPTIDE, inWID, "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTARGETSPOLYPEPTIDE, c.getId(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTARGETSPOLYPEPTIDE, c.getName(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTARGETSPOLYPEPTIDE, c.getSource(), "\n");
+                    }
+                }
                 if (b.getActions() != null) {
                     for (String a : b.getActions().getAction()) {
                         ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTARGETSACTIONS, inWID, "\t");
@@ -271,9 +279,15 @@ public class DrugBankPrint {
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKENZYMES, inWID, "\t");
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKENZYMES, WID, "\t");
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKENZYMES, b.getId(), "\t");
-                ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKENZYMES, b.getPosition(), "\t");
-                ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKENZYMES, b.getKnownAction().value(), "\n");
-
+                ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKENZYMES, b.getPosition(), "\n");
+                if (b.getPolypeptide() != null && !b.getPolypeptide().isEmpty()) {
+                    for (PolypeptideType c : b.getPolypeptide()) {
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKENZYMESPOLYPEPTIDE, inWID, "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKENZYMESPOLYPEPTIDE, c.getId(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKENZYMESPOLYPEPTIDE, c.getName(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKENZYMESPOLYPEPTIDE, c.getSource(), "\n");
+                    }
+                }
                 if (b.getActions() != null) {
                     for (String a : b.getActions().getAction()) {
                         ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKENZYMESACTIONS, inWID, "\t");
@@ -293,9 +307,15 @@ public class DrugBankPrint {
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTRANSPORTERS, inWID, "\t");
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTRANSPORTERS, WID, "\t");
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTRANSPORTERS, b.getId(), "\t");
-                ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTRANSPORTERS, b.getPosition(), "\t");
-                ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTRANSPORTERS, b.getKnownAction().value(), "\n");
-
+                ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTRANSPORTERS, b.getPosition(), "\n");
+                if (b.getPolypeptide() != null && !b.getPolypeptide().isEmpty()) {
+                    for (PolypeptideType c : b.getPolypeptide()) {
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTRANSPORTERSPOLYPEPTIDE, inWID, "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTRANSPORTERSPOLYPEPTIDE, c.getId(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTRANSPORTERSPOLYPEPTIDE, c.getName(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTRANSPORTERSPOLYPEPTIDE, c.getSource(), "\n");
+                    }
+                }
                 if (b.getActions() != null) {
                     for (String a : b.getActions().getAction()) {
                         ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKTRANSPORTERSACTIONS, inWID, "\t");
@@ -315,9 +335,15 @@ public class DrugBankPrint {
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKCARRIERS, inWID, "\t");
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKCARRIERS, WID, "\t");
                 ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKCARRIERS, b.getId(), "\t");
-                ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKCARRIERS, b.getPosition(), "\t");
-                ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKCARRIERS, b.getKnownAction().value(), "\n");
-
+                ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKCARRIERS, b.getPosition(), "\n");
+                if (b.getPolypeptide() != null && !b.getPolypeptide().isEmpty()) {
+                    for (PolypeptideType c : b.getPolypeptide()) {
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKCARRIERSPOLYPEPTIDE, inWID, "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKCARRIERSPOLYPEPTIDE, c.getId(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKCARRIERSPOLYPEPTIDE, c.getName(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKCARRIERSPOLYPEPTIDE, c.getSource(), "\n");
+                    }
+                }
                 if (b.getActions() != null) {
                     for (String a : b.getActions().getAction()) {
                         ParseFiles.getInstance().printOnTSVFile(DrugBankTables.getInstance().DRUGBANKCARRIERSACTIONS, inWID, "\t");
