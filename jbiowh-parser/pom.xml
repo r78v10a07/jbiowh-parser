@@ -4,7 +4,7 @@
 
     <groupId>org</groupId>
     <artifactId>jbiowh-parser</artifactId>
-    <version>6.1.1</version>
+    <version>6.1.2</version>
     <packaging>jar</packaging>
 
     <name>jbiowh-parser</name>
@@ -14,7 +14,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
+                <version>2.7</version>
                 <configuration>
                     <!-- specify UTF-8, ISO-8859-1 or any other file encoding -->
                     <encoding>UTF-8</encoding>
@@ -23,7 +23,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.2</version>
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
@@ -32,7 +32,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
+                <version>2.5</version>
                 <configuration>
                     <resource>
                         <filtering>true</filtering>
@@ -115,17 +115,17 @@
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-core</artifactId>
-            <version>6.1.1</version>
+            <version>6.1.2</version>
         </dependency>
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-dbms</artifactId>
-            <version>6.1.1</version>
+            <version>6.1.2</version>
         </dependency>
         <dependency>
             <groupId>org</groupId>
             <artifactId>jbiowh-persistence</artifactId>
-            <version>6.1.1</version>
+            <version>6.1.2</version>
         </dependency>        
         <dependency>
             <groupId>net.sf.jopt-simple</groupId>

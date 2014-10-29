@@ -50,16 +50,20 @@ public class DrugBankProteinLink {
         whdbmsFactory.executeUpdate("insert into "
                 + ProteinTables.PROTEIN_HAS_DRUGBANK
                 + " (Protein_WID,DrugBank_WID)"
-                + " SELECT pa.Protein_WID,t.DrugBank_WID FROM "
+                + " (SELECT pa.Protein_WID,t.DrugBank_WID FROM "
                 + DrugBankTables.getInstance().DRUGBANKTARGETS
                 + " t inner join "
-                + DrugBankTables.getInstance().DRUGBANKPARTNERS
-                + " p on p.Id = t.Partner inner join "
-                + DrugBankTables.getInstance().DRUGBANKPARTNEREXTERNALIDENTIFIERS
-                + " e on e.DrugBankPartners_WID = p.WID inner join "
+                + DrugBankTables.getInstance().DRUGBANKTARGETSPOLYPEPTIDE
+                + " p on p.DrugBankTarget_WID = t.WID inner join "
                 + ProteinTables.getInstance().PROTEINACCESSIONNUMBER
-                + " pa on pa.AccessionNumber = e.Identifier where e.Resource = 'UniProtKB'"
-                + " group by pa.Protein_WID,t.DrugBank_WID");
+                + " pa on pa.AccessionNumber = p.Id "
+                + " group by pa.Protein_WID,t.DrugBank_WID) "
+                + " UNION "
+                + " (SELECT p.Protein_WID,d.WID FROM "
+                + ProteinTables.getInstance().PROTEINDRUGBANK
+                + "  p inner join "
+                + DrugBankTables.getInstance().DRUGBANK
+                + "  d on d.Id = p.Id group by p.Protein_WID,d.WID)");
 
         whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_DRUGBANK);
 
@@ -74,12 +78,10 @@ public class DrugBankProteinLink {
                 + " SELECT pa.Protein_WID,t.DrugBank_WID FROM "
                 + DrugBankTables.getInstance().DRUGBANKENZYMES
                 + " t inner join "
-                + DrugBankTables.getInstance().DRUGBANKPARTNERS
-                + " p on p.Id = t.Partner inner join "
-                + DrugBankTables.getInstance().DRUGBANKPARTNEREXTERNALIDENTIFIERS
-                + " e on e.DrugBankPartners_WID = p.WID inner join "
+                + DrugBankTables.getInstance().DRUGBANKENZYMESPOLYPEPTIDE
+                + " p on p.DrugBankEnzyme_WID = t.WID inner join "
                 + ProteinTables.getInstance().PROTEINACCESSIONNUMBER
-                + " pa on pa.AccessionNumber = e.Identifier where e.Resource = 'UniProtKB'"
+                + " pa on pa.AccessionNumber = p.Id"
                 + " group by pa.Protein_WID,t.DrugBank_WID");
 
         whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_DRUGBANKASENZYME);
@@ -95,12 +97,10 @@ public class DrugBankProteinLink {
                 + " SELECT pa.Protein_WID,t.DrugBank_WID FROM "
                 + DrugBankTables.getInstance().DRUGBANKTRANSPORTERS
                 + " t inner join "
-                + DrugBankTables.getInstance().DRUGBANKPARTNERS
-                + " p on p.Id = t.Partner inner join "
-                + DrugBankTables.getInstance().DRUGBANKPARTNEREXTERNALIDENTIFIERS
-                + " e on e.DrugBankPartners_WID = p.WID inner join "
+                + DrugBankTables.getInstance().DRUGBANKTRANSPORTERSPOLYPEPTIDE
+                + " p on p.DrugBankTransporter_WID = t.WID inner join "
                 + ProteinTables.getInstance().PROTEINACCESSIONNUMBER
-                + " pa on pa.AccessionNumber = e.Identifier where e.Resource = 'UniProtKB'"
+                + " pa on pa.AccessionNumber = p.Id"
                 + " group by pa.Protein_WID,t.DrugBank_WID");
 
         whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_DRUGBANKASTRANSPORTERS);
@@ -116,14 +116,13 @@ public class DrugBankProteinLink {
                 + " SELECT pa.Protein_WID,t.DrugBank_WID FROM "
                 + DrugBankTables.getInstance().DRUGBANKCARRIERS
                 + " t inner join "
-                + DrugBankTables.getInstance().DRUGBANKPARTNERS
-                + " p on p.Id = t.Partner inner join "
-                + DrugBankTables.getInstance().DRUGBANKPARTNEREXTERNALIDENTIFIERS
-                + " e on e.DrugBankPartners_WID = p.WID inner join "
+                + DrugBankTables.getInstance().DRUGBANKCARRIERSPOLYPEPTIDE
+                + " p on p.DrugBankCarrier_WID = t.WID inner join "
                 + ProteinTables.getInstance().PROTEINACCESSIONNUMBER
-                + " pa on pa.AccessionNumber = e.Identifier where e.Resource = 'UniProtKB'"
+                + " pa on pa.AccessionNumber = p.Id"
                 + " group by pa.Protein_WID,t.DrugBank_WID");
 
         whdbmsFactory.enableKeys(ProteinTables.PROTEIN_HAS_DRUGBANKASCARRIERS);
+        
     }
 }

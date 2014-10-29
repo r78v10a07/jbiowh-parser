@@ -1,7 +1,6 @@
 package org.jbiowhparser.datasets.drug.drugbank.utility;
 
 import org.jbiowhcore.utility.utils.ParseFiles;
-import org.jbiowhpersistence.datasets.dataset.WIDFactory;
 
 /**
  * This class split the DrugBank reference and print it on the relational table
@@ -23,27 +22,22 @@ public class DrugBankSplitReference {
      */
     public void split(String reference, long refWID, String tableName) {
         if (reference != null) {
-            reference = reference.replace("\n", "");
+            reference = reference.trim().replace("\n", "");
             String[] ref = reference.split("#");
             for (String ref1 : ref) {
                 if (!ref1.isEmpty()) {
-                    long WID = WIDFactory.getInstance().getWid();
-                    WIDFactory.getInstance().increaseWid();
-                    String[] split = ref1.split("http:");
+                    String[] split = ref1.trim().split("http:");
                     if (split.length == 1) {
-                        ParseFiles.getInstance().printOnTSVFile(tableName, WID, "\t");
                         ParseFiles.getInstance().printOnTSVFile(tableName, refWID, "\t");
-                        ParseFiles.getInstance().printOnTSVFile(tableName, split[0], "\t");
+                        ParseFiles.getInstance().printOnTSVFile(tableName, split[0].trim(), "\t");
                         ParseFiles.getInstance().printOnTSVFile(tableName, "\\N", "\n");
                     } else if (split.length == 2) {
-                        ParseFiles.getInstance().printOnTSVFile(tableName, WID, "\t");
                         ParseFiles.getInstance().printOnTSVFile(tableName, refWID, "\t");
-                        ParseFiles.getInstance().printOnTSVFile(tableName, split[0], "\t");
-                        ParseFiles.getInstance().printOnTSVFile(tableName, "http:" + split[1], "\n");
+                        ParseFiles.getInstance().printOnTSVFile(tableName, split[0].trim(), "\t");
+                        ParseFiles.getInstance().printOnTSVFile(tableName, "http:" + split[1].trim(), "\n");
                     } else {
-                        ParseFiles.getInstance().printOnTSVFile(tableName, WID, "\t");
                         ParseFiles.getInstance().printOnTSVFile(tableName, refWID, "\t");
-                        ParseFiles.getInstance().printOnTSVFile(tableName, reference, "\t");
+                        ParseFiles.getInstance().printOnTSVFile(tableName, reference.trim(), "\t");
                         ParseFiles.getInstance().printOnTSVFile(tableName, "\\N", "\n");
                     }
                 }
